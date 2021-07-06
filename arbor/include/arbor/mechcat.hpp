@@ -104,6 +104,7 @@ public:
 private:
     std::unique_ptr<catalogue_state> state_;
 
+
     std::pair<mechanism_ptr, mechanism_overrides> instance_impl(arb_backend_kind, const std::string&) const;
     void register_impl(arb_backend_kind, const std::string&, mechanism_ptr);
 };
@@ -114,6 +115,7 @@ private:
 const mechanism_catalogue& global_default_catalogue();
 const mechanism_catalogue& global_allen_catalogue();
 const mechanism_catalogue& global_bbp_catalogue();
+const mechanism_catalogue& global_smol_catalogue();
 
 // Load catalogue from disk.
 

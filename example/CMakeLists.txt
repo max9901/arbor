@@ -11,3 +11,6 @@ add_subdirectory(gap_junctions)
 add_subdirectory(single)
 add_subdirectory(probe-demo)
 add_subdirectory(lfp)
+add_subdirectory(IOmax)
+
+
