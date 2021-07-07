@@ -1,42 +1,35 @@
 #include <cstdlib>     /* abs */
 #include <iostream>
 #include <iomanip>
-
 #include <nlohmann/json.hpp>
-
-//#include <arbor/assert_macro.hpp>
 #include <arbor/cable_cell.hpp>
 #include <arbor/common_types.hpp>
 #include <arbor/context.hpp>
 #include <arbor/load_balance.hpp>
-//#include <arbor/cable_cell.hpp>
 #include <arbor/profile/meter_manager.hpp>
-//#include <arbor/profile/profiler.hpp>
 #include <arbor/simple_sampler.hpp>
 #include <arbor/simulation.hpp>
 #include <arbor/recipe.hpp>
 #include <utility>
-//#include <arbor/version.hpp>
-
 #include <arborenv/concurrency.hpp>
-//#include <arborenv/gpu_env.hpp>
-
+#include <arborio/label_parse.hpp>
 #include <sup/ioutil.hpp>
+
+//#include "mechanisms/Local_catalogue.cpp"
+
+//#include <arbor/assert_macro.hpp>
+//#include <arbor/cable_cell.hpp>
+//#include <arbor/profile/profiler.hpp>
+//#include <arbor/version.hpp>
+//#include <arborenv/gpu_env.hpp>
 //#include <sup/json_meter.hpp>
 //#include <sup/json_params.hpp>
 
-#include <arborio/label_parse.hpp>
-using namespace arborio::literals;
-
 #ifdef ARB_MPI_ENABLED
 #include <mpi.h>
 #include <arborenv/with_mpi.hpp>
 #endif
 
-#ifdef ARB_MPI_ENABLED
-#include <mpi.h>
-#include <arborenv/with_mpi.hpp>
-#endif
 
 struct io_params {
     std::string name = "default";
@@ -47,7 +40,6 @@ struct io_params {
 
 arb::cable_cell IO_cell();
 void write_trace_json(const std::vector<arb::trace_vector<double>>& traces, unsigned rank, unsigned cell);
-
 class IO_recipe: public arb::recipe {
 public:
     explicit IO_recipe(io_params params,const arb::mechanism_catalogue* catalogue): params_ (std::move(params)),catalogue_(catalogue) {}
@@ -152,6 +144,10 @@ private:
     const arb::mechanism_catalogue* catalogue_;
 
 };
+
+/*
+ * MAIN
+ ************************************/
 int main() {
 
     arb::proc_allocation resources;
@@ -182,12 +178,16 @@ int main() {
     arb::profile::meter_manager meter;
     meter.start(context);
 
-
     io_params params;
 
     auto cat = (arb::mechanism_catalogue*)&arb::global_smol_catalogue();
+    auto localCat = (arb::mechanism_catalogue*)&arb::global_IOU_catalogue();
 
+    cat->import(*localCat,"ns_");      //actually add the catalogue we are interested in.
 
+    for (const auto& name : cat->mechanism_names()){
+        std::cout << name << std::endl;
+    }
 
     // Create an instance of our recipe.
     IO_recipe recipe(params, cat);
@@ -255,6 +255,8 @@ void write_trace_json(const std::vector<arb::trace_vector<double>>& traces, unsi
 }
 arb::cable_cell IO_cell(){
 
+    using namespace arborio::literals;
+
     // Create the sample tree that defines the morphology.
     arb::segment_tree tree;
     double soma_rad = 22.360679775/2.0; // convert diameter to radius in μm
@@ -321,6 +323,9 @@ arb::cable_cell IO_cell(){
     arb::mechanism_desc leak("leak");
     leak["gmax"] = 1.3e-05;
     decor.paint("(all)"_reg, leak);
+
+    arb::mechanism_desc ou_noise("ns_ou_noise");
+    decor.paint("(all)"_reg, ou_noise);
 
     // Add a spike detector to the soma at the beginning
 //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});

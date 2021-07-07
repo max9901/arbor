@@ -116,6 +116,7 @@ const mechanism_catalogue& global_default_catalogue();
 const mechanism_catalogue& global_allen_catalogue();
 const mechanism_catalogue& global_bbp_catalogue();
 const mechanism_catalogue& global_smol_catalogue();
+const mechanism_catalogue& global_IOU_catalogue();
 
 // Load catalogue from disk.
 

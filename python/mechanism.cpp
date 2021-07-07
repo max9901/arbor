@@ -191,6 +191,7 @@ void register_mechanisms(pybind11::module& m) {
     m.def("allen_catalogue", [](){return arb::global_allen_catalogue();});
     m.def("bbp_catalogue", [](){return arb::global_bbp_catalogue();});
     m.def("smol_catalogue", [](){return arb::global_smol_catalogue();});
+    m.def("IOU_catalogue", [](){return arb::global_IOU_catalogue();});
     m.def("load_catalogue", [](const std::string& fn){return arb::load_catalogue(fn);});
 
     // arb::mechanism_desc

@@ -112,7 +112,6 @@ install(TARGETS arbor-private-headers EXPORT arbor-targets)
 # Mechanisms, generated from .mod files; sets arbor_mechanism_sources
 # variable, build_all_mods target. Note: CMake source file properties are
 # directory-local.
-
 add_subdirectory(../mechanisms "${CMAKE_BINARY_DIR}/mechanisms")
 set_source_files_properties(${arbor_mechanism_sources} PROPERTIES GENERATED TRUE)
 
@@ -121,9 +120,11 @@ if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)
     set_source_files_properties(${arbor_mechanism_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-# Library target:
+# HIER fixen van de custom mechanisms...
 
-add_library(arbor ${arbor_sources} ${arbor_mechanism_sources})
+# Library target:
+message(STATUS custom mechs: ${arbor_mechanism_sources_custom})
+add_library(arbor ${arbor_sources} ${arbor_mechanism_sources} ${arbor_mechanism_sources_custom})
 add_dependencies(arbor build_all_mods)
 
 target_link_libraries(arbor PRIVATE arbor-private-deps arbor-private-headers)
