@@ -33,7 +33,7 @@ static constexpr unsigned simd_width_ = 0;
 [[maybe_unused]] auto _pp_var_mu     = pp->globals[2];      \
 [[maybe_unused]] auto _pp_var_alpha  = pp->globals[3];       \
 [[maybe_unused]] auto _pp_var_seed   = pp->globals[4];       \
-[[maybe_unused]] auto _pp_var_cnt   = pp->globals[5];       \
+[[maybe_unused]] auto & _pp_var_cnt    = pp->globals[5];       \
 [[maybe_unused]] auto* _pp_var_ouNoise  = pp->state_vars[0]; \
 //End of IFACEBLOCK
 
@@ -46,24 +46,25 @@ static void init(arb_mechanism_ppack* pp) {
     }
 }
 
-#define S(x) std::cout << "[" << i_ << "]" << #x << "\t\t" << x << std::endl;
+#define S(x) std::cout << #x << "\t\t" << x << std::endl;
 
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     r123::Philox2x32 rng;
     r123::Philox2x32::key_type k;
     r123::Philox2x32::ctr_type cg={{}};
-    cg[0] = _pp_var_cnt;          // some
-    cg[1] = _pp_var_cnt+1;
-    k[0] =  (int)_pp_var_seed;    // some user_supplied_seed
-    k[1] =  (int)_pp_var_seed+1;  // some user_supplied_seed
+    auto & counter = _pp_var_cnt;
+    cg[0] = counter;
+    cg[1] = 0;
+    k[0] =  (int)_pp_var_seed;
+    k[1] =  (int)_pp_var_seed+1;
     r123::Philox2x32::ctr_type r = rng(cg, k);
     r123::float2 tempg = r123::boxmuller(r[0],r[1]);
     arb_value_type  rand_global = tempg.x;
+    r123::Philox2x32::ctr_type c={{}};
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        r123::Philox2x32::ctr_type c={{}};
-        c[0] = _pp_var_cnt+i_+1;          // some
-        c[1] = _pp_var_cnt+i_+2;
+        c[0] = counter+i_+1;
+        c[1] = 0;
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type sqrt_dt = std::sqrt(dt);
@@ -76,9 +77,8 @@ static void compute_currents(arb_mechanism_ppack* pp) {
                 (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_normal
                 + _pp_var_alpha * Iapp_global;
         _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[i_];
-        c.incr();
     }
-    _pp_var_cnt += _pp_var_width+1;
+    counter += _pp_var_width+1;
 }
 
 static void advance_state(arb_mechanism_ppack* pp) {}

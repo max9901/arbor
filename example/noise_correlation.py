@@ -27,7 +27,7 @@ def make_cable_cell(gid):
     decor.place('"gjpos"', arbor.gap_junction(), 'a')
     labels['gjpos'] = '(root)'
 
-    decor.paint('"soma"', arbor.mechanism('ou_noise/theta=1,alpha=0.8,sigma=1'))
+    decor.paint('"soma"', arbor.mechanism('ou_noise/theta=1,alpha=0.5,sigma=1'))
 
     #decor.place('"synapse_site"', 'expsyn', 'syn')
     #decor.place('"root"', arbor.spike_detector(-10), 'detector')
