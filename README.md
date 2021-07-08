@@ -14,3 +14,13 @@ An installation guide and library documentation are available online at [Read th
 ### Citing Arbor
 
 Please refer to [our documentation](https://docs.arbor-sim.org/en/latest/index.html#citing-arbor).
+
+#### Compile bestand Lennart
+set -ex
+(cd arbor; python3 setup.py install --user --neuroml --gpu=cuda)
+python3 /home/lennart@dc.cube.local/max/arbor/example/noise_correlation.py
+
+### compile bestand max
+cmake .. -DARB_USE_BUNDLED_LIBS=on -DARB_WITH_PYTHON=on -DPYTHON_EXECUTABLE=$(which python3) -DARB_WITH_MPI=off
+cp -r /home/max/Documents/ARBORMASTER/arbor/build/python/arbor /home/max/.local/lib/python3.8/site-packages/.
+python ../example/noise_correlation.py
