@@ -34,7 +34,9 @@ __global__ void add_gj_current_impl(unsigned n,
     unsigned i = threadIdx.x+blockIdx.x*blockDim.x;
     if (i<n) {
         auto gj = gj_info[i];
-        auto curr = gj.weight * (voltage[gj.loc.second] - voltage[gj.loc.first]); // nA
+        auto dv = voltage[gj.loc.second] - voltage[gj.loc.first];
+        auto g_cx36 = 0.8 * exp(-1 * dv*dv / 100) + 0.2;
+        auto curr = gj.weight * dv * g_cx36; // nA; gj.weight is mu S
 
         gpu_atomic_sub(current_density + gj.loc.first, curr);
     }

@@ -50,6 +50,8 @@ static void init(arb_mechanism_ppack* pp) {
     }
 }
 
+#define S(x) std::cout << "[" << i_ << "]" << #x << "\t\t" << x << std::endl;
+
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     RNG rng;
