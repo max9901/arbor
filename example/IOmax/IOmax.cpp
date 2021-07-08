@@ -325,6 +325,7 @@ arb::cable_cell IO_cell(){
     decor.paint("(all)"_reg, leak);
 
     arb::mechanism_desc ou_noise("ns_ou_noise");
+//    ou_noise["seed"] = 1625748181;
     decor.paint("(all)"_reg, ou_noise);
 
     // Add a spike detector to the soma at the beginning

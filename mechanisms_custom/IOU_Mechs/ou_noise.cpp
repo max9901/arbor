@@ -36,40 +36,42 @@ static constexpr unsigned simd_width_ = 0;
 [[maybe_unused]] auto& _pp_var_events            = pp->events;\
 [[maybe_unused]] auto& _pp_var_mechanism_id      = pp->mechanism_id;\
 [[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints;\
-[[maybe_unused]] auto _pp_var_theta  = pp->globals[0];     \
-[[maybe_unused]] auto _pp_var_sigma  = pp->globals[1];     \
-[[maybe_unused]] auto _pp_var_mu     = pp->globals[2];     \
-[[maybe_unused]] auto _pp_var_alpha  = pp->globals[3];     \
+[[maybe_unused]] auto _pp_var_theta  = pp->globals[0];      \
+[[maybe_unused]] auto _pp_var_sigma  = pp->globals[1];      \
+[[maybe_unused]] auto _pp_var_mu     = pp->globals[2];      \
+[[maybe_unused]] auto _pp_var_alpha  = pp->globals[3];       \
+[[maybe_unused]] auto _pp_var_seed   = pp->globals[4];      \
 [[maybe_unused]] auto* _pp_var_ouNoise  = pp->state_vars[0];\
 //End of IFACEBLOCK
 
 // interface methods
 static void init(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
-    uk[0] = 151315640; // some user_supplied_seed
+    uk[0] = (int)_pp_var_seed; // some user_supplied_seed
     k = uk;
-    std::cout << "IM alive IM OU NOISE\n";
 }
 
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     c.incr();
     RNG::ctr_type r = rng(c, k);
-    arb_value_type rand_global = (arb_value_type)r[0]/(4294967296);
+    r123::float2 temp = r123::boxmuller(r[0],r[1]);
+    arb_value_type  rand_global = temp.x;
     c.incr();
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         arb_value_type dt = _pp_var_vec_dt[i_];
         arb_value_type sqrt_dt = std::sqrt(dt);
-        arb_value_type Iapp_global = _pp_var_alpha * _pp_var_sigma * sqrt_dt * rand_global;
+        arb_value_type Iapp_global = _pp_var_sigma * sqrt_dt * rand_global;
         r = rng(c, k);
         r123::float2 temp = r123::boxmuller(r[0],r[1]);
         arb_value_type  rand_normal = temp.x;
-        std::cout << rand_normal << "\t";
-        _pp_var_ouNoise[i_] += _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[i_]) * dt + (1 - _pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_normal + _pp_var_alpha * Iapp_global;
+        _pp_var_ouNoise[i_] +=
+                _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[i_]) * dt +
+                (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_normal
+                + _pp_var_alpha * Iapp_global;
         _pp_var_vec_i[i_] -= _pp_var_ouNoise[i_];
         c.incr();
     }
-    std::cout << std::endl;
 }
 
 static void advance_state(arb_mechanism_ppack* pp) {}
