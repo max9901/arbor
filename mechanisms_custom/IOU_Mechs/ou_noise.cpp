@@ -49,6 +49,9 @@ static void init(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     uk[0] = (int)_pp_var_seed; // some user_supplied_seed
     k = uk;
+    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
+        _pp_var_ouNoise[i_] = 0;
+    }
 }
 
 static void compute_currents(arb_mechanism_ppack* pp) {
