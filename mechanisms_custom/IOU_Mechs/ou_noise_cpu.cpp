@@ -1,15 +1,11 @@
-#include "iostream"
+#include "iostream" //debugging
+
 #include <arbor/mechanism_abi.h>
 #include <cmath>
-
-#include <arbor/math.hpp>
 #include <Random123/philox.h>
 #include <Random123/boxmuller.hpp>
 
 namespace arb::IOU_catalogue::kernel_ou_noise {
-
-typedef r123::Philox2x32 RNG;
-
 static constexpr unsigned simd_width_ = 0;
 
 #define PPACK_IFACE_BLOCK \
@@ -54,22 +50,20 @@ static void init(arb_mechanism_ppack* pp) {
 
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
-    RNG rng;
-    RNG::key_type k;
+    r123::Philox2x32 rng;
+    r123::Philox2x32::key_type k;
 
-    RNG::ctr_type cg={{}};
+    r123::Philox2x32::ctr_type cg={{}};
     cg[0] = _pp_var_cnt;          // some
     cg[1] = _pp_var_cnt+1;
-
-    k[0] =  (int)_pp_var_seed;   // some user_supplied_seed
-    k[1] =  (int)_pp_var_seed+1; // some user_supplied_seed
-
-    RNG::ctr_type r = rng(cg, k);
+    k[0] =  (int)_pp_var_seed;    // some user_supplied_seed
+    k[1] =  (int)_pp_var_seed+1;  // some user_supplied_seed
+    r123::Philox2x32::ctr_type r = rng(cg, k);
     r123::float2 temp = r123::boxmuller(r[0],r[1]);
     arb_value_type  rand_global = temp.x;
 
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        RNG::ctr_type c={{}};
+        r123::Philox2x32::ctr_type c={{}};
         c[0] = _pp_var_cnt+i_+1;          // some
         c[1] = _pp_var_cnt+i_+2;
         auto node_indexi_ = _pp_var_node_index[i_];
@@ -83,7 +77,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
                 _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[i_]) * dt +
                 (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_normal
                 + _pp_var_alpha * Iapp_global;
-        _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[node_indexi_];
+        _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[i_];
         c.incr();
     }
     _pp_var_cnt += _pp_var_width+1;
