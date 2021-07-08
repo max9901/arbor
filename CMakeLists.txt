@@ -113,8 +113,9 @@ if(ARB_GPU STREQUAL "cuda")
 
     # CMake 18 and later set the default CUDA architecture for
     # each target according to CMAKE_CUDA_ARCHITECTURES.
+    # 50 specially for our lab pc of lennart usage because my elighs sucs and the compure is deprecated.
     if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-        set(CMAKE_CUDA_ARCHITECTURES 60 70 80)
+        set(CMAKE_CUDA_ARCHITECTURES 50 60 70 80)
     endif()
 
     # This fixes nvcc picking up a wrong host compiler for linking, causing issues

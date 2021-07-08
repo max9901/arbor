@@ -33,7 +33,7 @@
 
 struct io_params {
     std::string name = "default";
-    double simtime = .1;   //ms
+    double simtime = 1;   //ms
     double timestep = 0.025;  //ms
     unsigned n_cells = 3;
 };

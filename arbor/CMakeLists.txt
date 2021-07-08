@@ -120,10 +120,7 @@ if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)
     set_source_files_properties(${arbor_mechanism_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-# HIER fixen van de custom mechanisms...
-
 # Library target:
-message(STATUS custom mechs: ${arbor_mechanism_sources_custom})
 add_library(arbor ${arbor_sources} ${arbor_mechanism_sources} ${arbor_mechanism_sources_custom})
 add_dependencies(arbor build_all_mods)
 
