@@ -52,16 +52,14 @@ static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     r123::Philox2x32 rng;
     r123::Philox2x32::key_type k;
-
     r123::Philox2x32::ctr_type cg={{}};
     cg[0] = _pp_var_cnt;          // some
     cg[1] = _pp_var_cnt+1;
     k[0] =  (int)_pp_var_seed;    // some user_supplied_seed
     k[1] =  (int)_pp_var_seed+1;  // some user_supplied_seed
     r123::Philox2x32::ctr_type r = rng(cg, k);
-    r123::float2 temp = r123::boxmuller(r[0],r[1]);
-    arb_value_type  rand_global = temp.x;
-
+    r123::float2 tempg = r123::boxmuller(r[0],r[1]);
+    arb_value_type  rand_global = tempg.x;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         r123::Philox2x32::ctr_type c={{}};
         c[0] = _pp_var_cnt+i_+1;          // some
