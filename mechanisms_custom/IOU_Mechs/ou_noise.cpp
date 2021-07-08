@@ -9,11 +9,11 @@
 namespace arb::IOU_catalogue::kernel_ou_noise {
 
 typedef r123::Philox2x32 RNG;
-RNG rng;
+static RNG rng;
 
-RNG::ctr_type c={{}};
-RNG::ukey_type uk={{}};
-RNG::key_type k;
+static RNG::ctr_type c={{}};
+static RNG::ukey_type uk={{}};
+static RNG::key_type k;
 
 static constexpr unsigned simd_width_ = 0;
 
@@ -64,7 +64,8 @@ static void compute_currents(arb_mechanism_ppack* pp) {
     arb_value_type  rand_global = temp.x;
     c.incr();
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        arb_value_type dt = _pp_var_vec_dt[i_];
+        auto node_indexi_ = _pp_var_node_index[i_];
+        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type sqrt_dt = std::sqrt(dt);
         arb_value_type Iapp_global = _pp_var_sigma * sqrt_dt * rand_global;
         r = rng(c, k);
@@ -74,7 +75,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
                 _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[i_]) * dt +
                 (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_normal
                 + _pp_var_alpha * Iapp_global;
-        _pp_var_vec_i[i_] -= _pp_var_ouNoise[i_];
+        _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[i_];
         c.incr();
     }
 }
