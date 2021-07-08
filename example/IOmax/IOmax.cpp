@@ -182,12 +182,8 @@ int main() {
 
     auto cat = (arb::mechanism_catalogue*)&arb::global_smol_catalogue();
     auto localCat = (arb::mechanism_catalogue*)&arb::global_IOU_catalogue();
-
     cat->import(*localCat,"ns_");      //actually add the catalogue we are interested in.
 
-    for (const auto& name : cat->mechanism_names()){
-        std::cout << name << std::endl;
-    }
 
     // Create an instance of our recipe.
     IO_recipe recipe(params, cat);
@@ -329,7 +325,7 @@ arb::cable_cell IO_cell(){
     decor.paint("(all)"_reg, ou_noise);
 
     // Add a spike detector to the soma at the beginning
-//    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});
+    //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});
 
     // Add gap junction sites at the end of the branch
     decor.place(arb::mlocation{1, 1}, arb::gap_junction_site{},"local_0");
@@ -337,11 +333,11 @@ arb::cable_cell IO_cell(){
     decor.place(arb::mlocation{4, 1}, arb::gap_junction_site{},"local_2");
 
     // Attach a stimulus
-//    auto stim = arb::i_clamp::box(0, stim_duration, 0.4);
-//    decor.place(arb::mlocation{0, 0.5}, stim);
+    //    auto stim = arb::i_clamp::box(0, stim_duration, 0.4);
+    //    decor.place(arb::mlocation{0, 0.5}, stim);
 
     // Add a synapse
-//    decor.place(arb::mlocation{0, 0.5}, "expsyn");
+    //    decor.place(arb::mlocation{0, 0.5}, "expsyn");
 
     return arb::cable_cell(tree, labels, decor);
 }

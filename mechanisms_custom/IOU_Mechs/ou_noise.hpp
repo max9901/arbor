@@ -3,17 +3,16 @@
 #include <cmath>
 #include <arbor/mechanism_abi.h>
 
-
-
 extern "C" {
   arb_mechanism_type make_arb_IOU_catalogue_ou_noise() {
     static arb_field_info globals[] = { { "theta", "",         1, -1.7976931348623157e+308, 1.7976931348623157e+308 },
                                         { "sigma", "",         1, -1.7976931348623157e+308, 1.7976931348623157e+308 },
                                         { "mu"   , "",         1, -1.7976931348623157e+308, 1.7976931348623157e+308 },
                                         { "alpha", "",       0.5, -1.7976931348623157e+308, 1.7976931348623157e+308 },
-                                        { "seed" , "", 851773408, -1.7976931348623157e+308, 1.7976931348623157e+308 }};
-    static arb_size_type n_globals = 5;
-    static arb_field_info state_vars[] = { { "ouNoise", "", NAN, -1.7976931348623157e+308, 1.7976931348623157e+308 } };
+                                        { "seed" , "", 851773408, -1.7976931348623157e+308, 1.7976931348623157e+308 },
+                                        { "cnt"  , "", 0, -1.7976931348623157e+308, 1.7976931348623157e+308 }};
+    static arb_size_type n_globals = 6;
+    static arb_field_info state_vars[] = { { "ouNoise", "", NAN, -1.7976931348623157e+308, 1.7976931348623157e+308 }};
     static arb_size_type n_state_vars = 1;
     static arb_field_info parameters[] = {};
     static arb_size_type n_parameters = 0;
