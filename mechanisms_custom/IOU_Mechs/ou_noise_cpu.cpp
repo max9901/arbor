@@ -9,11 +9,6 @@
 namespace arb::IOU_catalogue::kernel_ou_noise {
 
 typedef r123::Philox2x32 RNG;
-static RNG rng;
-
-static RNG::ctr_type c={{}};
-static RNG::ukey_type uk={{}};
-static RNG::key_type k;
 
 static constexpr unsigned simd_width_ = 0;
 
@@ -35,20 +30,21 @@ static constexpr unsigned simd_width_ = 0;
 [[maybe_unused]] auto* _pp_var_weight            = pp->weight;\
 [[maybe_unused]] auto& _pp_var_events            = pp->events;\
 [[maybe_unused]] auto& _pp_var_mechanism_id      = pp->mechanism_id;\
-[[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints;\
+[[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
+                          \
 [[maybe_unused]] auto _pp_var_theta  = pp->globals[0];      \
 [[maybe_unused]] auto _pp_var_sigma  = pp->globals[1];      \
 [[maybe_unused]] auto _pp_var_mu     = pp->globals[2];      \
 [[maybe_unused]] auto _pp_var_alpha  = pp->globals[3];       \
-[[maybe_unused]] auto _pp_var_seed   = pp->globals[4];      \
-[[maybe_unused]] auto* _pp_var_ouNoise  = pp->state_vars[0];\
+[[maybe_unused]] auto _pp_var_seed   = pp->globals[4];       \
+[[maybe_unused]] auto _pp_var_cnt   = pp->globals[5];       \
+[[maybe_unused]] auto* _pp_var_ouNoise  = pp->state_vars[0]; \
 //End of IFACEBLOCK
 
 // interface methods
 static void init(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
-    uk[0] = (int)_pp_var_seed; // some user_supplied_seed
-    k = uk;
+    _pp_var_cnt = 0.;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         _pp_var_ouNoise[i_] = 0;
     }
@@ -58,12 +54,24 @@ static void init(arb_mechanism_ppack* pp) {
 
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
-    c.incr();
-    RNG::ctr_type r = rng(c, k);
+    RNG rng;
+    RNG::key_type k;
+
+    RNG::ctr_type cg={{}};
+    cg[0] = _pp_var_cnt;          // some
+    cg[1] = _pp_var_cnt+1;
+
+    k[0] =  (int)_pp_var_seed;   // some user_supplied_seed
+    k[1] =  (int)_pp_var_seed+1; // some user_supplied_seed
+
+    RNG::ctr_type r = rng(cg, k);
     r123::float2 temp = r123::boxmuller(r[0],r[1]);
     arb_value_type  rand_global = temp.x;
-    c.incr();
+
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
+        RNG::ctr_type c={{}};
+        c[0] = _pp_var_cnt+i_+1;          // some
+        c[1] = _pp_var_cnt+i_+2;
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type sqrt_dt = std::sqrt(dt);
@@ -78,6 +86,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
         _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[i_];
         c.incr();
     }
+    _pp_var_cnt += _pp_var_width+1;
 }
 
 static void advance_state(arb_mechanism_ppack* pp) {}
