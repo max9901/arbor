@@ -8,8 +8,8 @@
 #include <arbor/mechanism_abi.h>
 
 
-#include "../tests/util_cuda.h"
 #include <Random123/philox.h>
+#include <Random123/boxmuller.hpp>
 
 namespace arb {
     namespace IOU_catalogue {
@@ -34,13 +34,13 @@ auto* _pp_var_weight            __attribute__((unused)) = params_.weight;\
 auto& _pp_var_events            __attribute__((unused)) = params_.events;\
 auto& _pp_var_mechanism_id      __attribute__((unused)) = params_.mechanism_id;\
 auto& _pp_var_index_constraints __attribute__((unused)) = params_.index_constraints; \
-                          \
-auto _pp_var_theta  __attribute__((unused)) = pp->globals[0];      \
-auto _pp_var_sigma  __attribute__((unused)) = pp->globals[1];      \
-auto _pp_var_mu     __attribute__((unused)) = pp->globals[2];      \
-auto _pp_var_alpha  __attribute__((unused)) = pp->globals[3];       \
-auto _pp_var_seed   __attribute__((unused)) = pp->globals[4];      \
-auto* _pp_var_ouNoise __attribute__((unused)) = pp->state_vars[0];\
+auto _pp_var_theta              __attribute__((unused)) = params_.globals[0];      \
+auto _pp_var_sigma              __attribute__((unused)) = params_.globals[1];      \
+auto _pp_var_mu                 __attribute__((unused)) = params_.globals[2];      \
+auto _pp_var_alpha              __attribute__((unused)) = params_.globals[3];      \
+auto _pp_var_seed               __attribute__((unused)) = params_.globals[4];      \
+auto& _pp_var_cnt               __attribute__((unused)) = params_.globals[5];     \
+auto* _pp_var_ouNoise           __attribute__((unused)) = params_.state_vars[0];   \
 //End of IFACEBLOCK
 
 namespace {
@@ -51,67 +51,69 @@ using ::arb::gpu::min;
 using ::arb::gpu::max;
 
 __global__
-void init(arb_mechanism_ppack params_) {
+void init(arb_mechanism_ppack params_) {  //done
+
     int n_ = params_.width;
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
 
     PPACK_IFACE_BLOCK;
 
+    if(!tid_) _pp_var_cnt = 0;
     if (tid_<n_) {
         _pp_var_ouNoise[tid_] = 0;
     }
 }
 
-__global__
-void multiply(arb_mechanism_ppack params_) {
-    PPACK_IFACE_BLOCK;
+__global__ void compute_currents(arb_mechanism_ppack params_) {
 
-    auto tid_ = threadIdx.x + blockDim.x*blockIdx.x;
-    auto idx_ = blockIdx.y;
-    if(tid_<_pp_var_width) {
-        _pp_var_state_vars[idx_][tid_] *= _pp_var_multiplicity[tid_];
-    }
-
-}
-
-__global__
-void advance_state(arb_mechanism_ppack params_) {}
-
-__global__
-void compute_currents(arb_mechanism_ppack params_) {
     int n_ = params_.width;
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
+
     PPACK_IFACE_BLOCK;
+    philox2x32_key_t k = {{(uint32_t)_pp_var_seed}};
+    philox2x32_ctr_t c = {{(uint32_t)_pp_var_cnt+tid_}};
+    philox2x32_ctr_t cresult = philox4x32(c, k);
+    arb_value_type  rand_global = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
     if (tid_<n_) {
+        c.v[0] = _pp_var_cnt+tid_+1;
+        auto node_indexi_          = _pp_var_node_index[tid_];
+        arb_value_type dt          = _pp_var_vec_dt[node_indexi_];
+        arb_value_type sqrt_dt     = std::sqrt(dt);
+        arb_value_type Iapp_global = _pp_var_sigma * sqrt_dt * rand_global;
+        cresult = philox2x32(c, k);
+        arb_value_type  rand_local = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
 
+        _pp_var_ouNoise[tid_] +=
+                _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[tid_]) * dt +
+                (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_local
+                + _pp_var_alpha * Iapp_global;
+
+        _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[tid_];
     }
-
+    if(!tid_) _pp_var_cnt += n_+1;
 }
 
-__global__
-void write_ions(arb_mechanism_ppack params_) {}
+__global__ void write_ions(arb_mechanism_ppack params_) {}
 
 } // namespace
 
 
-void mechanism_ca_conc_gpu_init_(arb_mechanism_ppack* p) {
+void mechanism_ou_noise_gpu_init_(arb_mechanism_ppack* p) {
     unsigned block_dim = 128;
     unsigned grid_dim = ::arb::gpu::impl::block_count(p->width, block_dim);
-
     init<<<grid_dim, block_dim>>>(*p);
 }
 
-void mechanism_ca_conc_gpu_compute_currents_(arb_mechanism_ppack* p) {
+void mechanism_ou_noise_gpu_compute_currents_(arb_mechanism_ppack* p) {
     unsigned block_dim = 128;
     unsigned grid_dim = ::arb::gpu::impl::block_count(p->width, block_dim);
-
     compute_currents<<<grid_dim, block_dim>>>(*p);
 }
 
-void mechanism_ca_conc_gpu_advance_state_(arb_mechanism_ppack* p) {}
+void mechanism_ou_noise_gpu_advance_state_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_write_ions_(arb_mechanism_ppack* p) {}
-void mechanism_ca_conc_gpu_post_event_(arb_mechanism_ppack* p) {}
-void mechanism_ca_conc_gpu_apply_events_(arb_mechanism_ppack* p) {}
+void mechanism_ou_noise_gpu_post_event_(arb_mechanism_ppack* p) {}
+void mechanism_ou_noise_gpu_apply_events_(arb_mechanism_ppack* p) {}
 
     } // namespace smol_catalogue
 } // namespace arb

@@ -15,7 +15,7 @@ An installation guide and library documentation are available online at [Read th
 
 Please refer to [our documentation](https://docs.arbor-sim.org/en/latest/index.html#citing-arbor).
 
-#### Compile bestand Lennart
+### Compile bestand Lennart
 set -ex
 (cd arbor; python3 setup.py install --user --neuroml --gpu=cuda)
 python3 /home/lennart@dc.cube.local/max/arbor/example/noise_correlation.py

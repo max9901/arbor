@@ -52,18 +52,19 @@ static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     r123::Philox2x32 rng;
     r123::Philox2x32::key_type k;
+    k[0] =  (uint32_t)_pp_var_seed;
+    k[1] =  (uint32_t)_pp_var_seed+1;
+
+    //caculated the global contribution
     r123::Philox2x32::ctr_type cg={{}};
-    auto & counter = _pp_var_cnt;
-    cg[0] = counter;
+    cg[0] = _pp_var_cnt;
     cg[1] = 0;
-    k[0] =  (int)_pp_var_seed;
-    k[1] =  (int)_pp_var_seed+1;
     r123::Philox2x32::ctr_type r = rng(cg, k);
-    r123::float2 tempg = r123::boxmuller(r[0],r[1]);
-    arb_value_type  rand_global = tempg.x;
-    r123::Philox2x32::ctr_type c={{}};
+    arb_value_type  rand_global = r123::boxmuller(r[0],r[1]).x;
+
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        c[0] = counter+i_+1;
+        r123::Philox2x32::ctr_type c={{}};
+        c[0] = _pp_var_cnt+i_+1;
         c[1] = 0;
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
@@ -78,7 +79,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
                 + _pp_var_alpha * Iapp_global;
         _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[i_];
     }
-    counter += _pp_var_width+1;
+    _pp_var_cnt += _pp_var_width+1;
 }
 
 static void advance_state(arb_mechanism_ppack* pp) {}

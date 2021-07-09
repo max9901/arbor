@@ -59,6 +59,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef R123_ASSERT
 #include <assert.h>
+"features.h"
+"stdc-predef.h"
+"sys/cdefs.h"
+"bits/wordsize.h"
+"bits/long-double.h"
+"gnu/stubs.h"
+"gnu/stubs-64.h"
+
 #define R123_ASSERT(x) assert(x)
 #endif
 
@@ -93,7 +101,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_USE_SSE4_2
-#if defined(_M_X64)
+#if defined(_M_X64) || _MSC_VER > 1899
 #define R123_USE_SSE4_2 1
 #else
 #define R123_USE_SSE4_2 0
@@ -101,7 +109,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_USE_SSE4_1
-#if defined(_M_X64)
+#if defined(_M_X64) || _MSC_VER > 1899
 #define R123_USE_SSE4_1 1
 #else
 #define R123_USE_SSE4_1 0
@@ -188,6 +196,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __STDC_CONSTANT_MACROS
 #endif
 #include <stdint.h>
+"stdint.h"
+"bits/libc-header-start.h"
+"features.h"
+"bits/types.h"
+"features.h"
+"bits/wordsize.h"
+"bits/timesize.h"
+"bits/typesizes.h"
+"bits/time64.h"
+"bits/wchar.h"
+"bits/wordsize.h"
+"bits/stdint-intn.h"
+"bits/types.h"
+"bits/stdint-uintn.h"
+"bits/types.h"
+
 #ifndef UINT64_C
 #error UINT64_C not defined.  You must define __STDC_CONSTANT_MACROS before you #include <stdint.h>
 #endif
