@@ -53,10 +53,10 @@ __global__
 void init(arb_mechanism_ppack params_) {  //done
     int n_ = params_.width;
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
-    PPACK_IFACE_BLOCK;
-    if(!tid_) _pp_var_cnt = 0;
+    if(!tid_) params_.globals[5] = 0;
+
     if (tid_<n_) {
-        _pp_var_ouNoise[tid_] = 0;
+        params_.state_vars[0][tid_] = 0;
     }
 }
 
@@ -80,28 +80,22 @@ __global__ void compute_currents(arb_mechanism_ppack params_) {
                 _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[tid_]) * dt +
                 (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_local
                 + _pp_var_alpha * Iapp_global;
-
         _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[tid_];
     }
     if(!tid_) _pp_var_cnt += n_+1;
 }
-
-
 } // namespace
-
 
 void mechanism_ou_noise_gpu_init_(arb_mechanism_ppack* p) {
     unsigned block_dim = 128;
     unsigned grid_dim = ::arb::gpu::impl::block_count(p->width, block_dim);
     init<<<grid_dim, block_dim>>>(*p);
 }
-
 void mechanism_ou_noise_gpu_compute_currents_(arb_mechanism_ppack* p) {
     unsigned block_dim = 128;
     unsigned grid_dim = ::arb::gpu::impl::block_count(p->width, block_dim);
     compute_currents<<<grid_dim, block_dim>>>(*p);
 }
-
 void mechanism_ou_noise_gpu_advance_state_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_write_ions_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_post_event_(arb_mechanism_ppack* p) {}
