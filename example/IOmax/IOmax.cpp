@@ -15,6 +15,8 @@
 #include <arborio/label_parse.hpp>
 #include <sup/ioutil.hpp>
 
+#include <arborenv/gpu_env.hpp>
+
 //#include "mechanisms/Local_catalogue.cpp"
 
 //#include <arbor/assert_macro.hpp>
@@ -161,13 +163,13 @@ int main() {
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     }
 #else
+//     resources.gpu_id = arbenv::default_gpu();
      auto context = arb::make_context(resources);
 #endif
 
 #ifdef ARB_PROFILE_ENABLED
     arb::profile::profiler_initialize(context);
 #endif
-
 
     // Print a banner with information about hardware configuration
     std::cout << "gpu:      " << (has_gpu(context)? "yes": "no") << "\n";
@@ -181,8 +183,8 @@ int main() {
     io_params params;
 
     auto cat = (arb::mechanism_catalogue*)&arb::global_smol_catalogue();
-    auto localCat = (arb::mechanism_catalogue*)&arb::global_IOU_catalogue();
-    cat->import(*localCat,"ns_");      //actually add the catalogue we are interested in.
+    auto IOUCat = (arb::mechanism_catalogue*)&arb::global_IOU_catalogue();
+    cat->import(*IOUCat,"ns_");      //actually add the catalogue we are interested in.
 
 
     // Create an instance of our recipe.

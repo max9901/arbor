@@ -7,7 +7,6 @@
 #include <arbor/gpu/reduce_by_key.hpp>
 #include <arbor/mechanism_abi.h>
 
-
 #include <Random123/philox.h>
 #include <Random123/boxmuller.hpp>
 
@@ -65,14 +64,12 @@ void init(arb_mechanism_ppack params_) {  //done
 }
 
 __global__ void compute_currents(arb_mechanism_ppack params_) {
-
     int n_ = params_.width;
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
-
     PPACK_IFACE_BLOCK;
     philox2x32_key_t k = {{(uint32_t)_pp_var_seed}};
     philox2x32_ctr_t c = {{(uint32_t)_pp_var_cnt+tid_}};
-    philox2x32_ctr_t cresult = philox4x32(c, k);
+    philox2x32_ctr_t cresult = philox2x32(c, k);
     arb_value_type  rand_global = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
     if (tid_<n_) {
         c.v[0] = _pp_var_cnt+tid_+1;
@@ -82,7 +79,6 @@ __global__ void compute_currents(arb_mechanism_ppack params_) {
         arb_value_type Iapp_global = _pp_var_sigma * sqrt_dt * rand_global;
         cresult = philox2x32(c, k);
         arb_value_type  rand_local = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
-
         _pp_var_ouNoise[tid_] +=
                 _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[tid_]) * dt +
                 (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_local

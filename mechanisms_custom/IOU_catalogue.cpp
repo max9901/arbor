@@ -10,6 +10,7 @@ mechanism_catalogue build_IOU_catalogue() {
     mechanism_catalogue cat;
     cat.add("ou_noise", make_arb_IOU_catalogue_ou_noise());
     cat.register_implementation("ou_noise", std::make_unique<mechanism>(make_arb_IOU_catalogue_ou_noise(), *make_arb_IOU_catalogue_ou_noise_interface_multicore()));
+    cat.register_implementation("ou_noise", std::make_unique<mechanism>(make_arb_IOU_catalogue_ou_noise(), *make_arb_IOU_catalogue_ou_noise_interface_gpu()));
   return cat;
 }
 
