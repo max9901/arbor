@@ -21,6 +21,7 @@ set -ex
 python3 /home/lennart@dc.cube.local/max/arbor/example/noise_correlation.py
 
 ### compile bestand max
-cmake .. -DARB_USE_BUNDLED_LIBS=on -DARB_WITH_PYTHON=on -DPYTHON_EXECUTABLE=$(which python3) -DARB_WITH_MPI=off
-cp -r /home/max/Documents/ARBORMASTER/arbor/build/python/arbor /home/max/.local/lib/python3.8/site-packages/.
+cmake .. -DARB_USE_BUNDLED_LIBS=on -DARB_WITH_PYTHON=on -DPYTHON_EXECUTABLE=$(which python3) -DARB_WITH_MPI=off -DARB_GPU=cuda
+
+cp -r python/arbor ~/.local/lib/python3.8/site-packages/.
 python ../example/noise_correlation.py
