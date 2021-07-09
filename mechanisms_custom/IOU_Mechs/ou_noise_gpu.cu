@@ -51,12 +51,9 @@ using ::arb::gpu::max;
 
 __global__
 void init(arb_mechanism_ppack params_) {  //done
-
     int n_ = params_.width;
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
-
     PPACK_IFACE_BLOCK;
-
     if(!tid_) _pp_var_cnt = 0;
     if (tid_<n_) {
         _pp_var_ouNoise[tid_] = 0;
@@ -68,7 +65,7 @@ __global__ void compute_currents(arb_mechanism_ppack params_) {
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
     PPACK_IFACE_BLOCK;
     philox2x32_key_t k = {{(uint32_t)_pp_var_seed}};
-    philox2x32_ctr_t c = {{(uint32_t)_pp_var_cnt+tid_}};
+    philox2x32_ctr_t c = {{(uint32_t)_pp_var_cnt}};
     philox2x32_ctr_t cresult = philox2x32(c, k);
     arb_value_type  rand_global = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
     if (tid_<n_) {
@@ -89,7 +86,6 @@ __global__ void compute_currents(arb_mechanism_ppack params_) {
     if(!tid_) _pp_var_cnt += n_+1;
 }
 
-__global__ void write_ions(arb_mechanism_ppack params_) {}
 
 } // namespace
 
@@ -111,5 +107,5 @@ void mechanism_ou_noise_gpu_write_ions_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_post_event_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_apply_events_(arb_mechanism_ppack* p) {}
 
-    } // namespace smol_catalogue
+} // namespace IOU_catalogue
 } // namespace arb
