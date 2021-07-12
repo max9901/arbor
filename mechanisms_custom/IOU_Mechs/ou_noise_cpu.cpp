@@ -1,4 +1,6 @@
-#include "iostream" //debugging
+//
+// Created by max on 08-07-21.
+//
 
 #include <arbor/mechanism_abi.h>
 #include <cmath>
@@ -46,36 +48,23 @@ static void init(arb_mechanism_ppack* pp) {
     }
 }
 
-#define S(x) std::cout << #x << "\t\t" << x << std::endl;
-
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
-    r123::Philox2x32 rng;
-    r123::Philox2x32::key_type k;
-    k[0] =  (uint32_t)_pp_var_seed;
-    k[1] =  (uint32_t)_pp_var_seed+1;
-
-    //caculated the global contribution
-    r123::Philox2x32::ctr_type cg={{}};
-    cg[0] = _pp_var_cnt;
-    cg[1] = 0;
-    r123::Philox2x32::ctr_type r = rng(cg, k);
-    arb_value_type  rand_global = r123::boxmuller(r[0],r[1]).x;
-
+    philox2x32_key_t k = {{(uint32_t)_pp_var_seed}};
+    philox2x32_ctr_t c = {{(uint32_t)_pp_var_cnt}};
+    philox2x32_ctr_t cresult = philox2x32(c, k);
+    const float rand_global = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        r123::Philox2x32::ctr_type c={{}};
-        c[0] = _pp_var_cnt+i_+1;
-        c[1] = 0;
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
-        arb_value_type sqrt_dt = std::sqrt(dt);
-        arb_value_type Iapp_global = _pp_var_sigma * sqrt_dt * rand_global;
-        r = rng(c, k);
-        r123::float2 temp = r123::boxmuller(r[0],r[1]);
-        arb_value_type  rand_normal = temp.x;
+        c.v[0] = _pp_var_cnt+i_+1;
+        const auto node_indexi_ = _pp_var_node_index[i_];
+        const arb_value_type dt = _pp_var_vec_dt[node_indexi_];
+        const arb_value_type sqrt_dt = std::sqrt(dt);
+        const arb_value_type Iapp_global = _pp_var_sigma * sqrt_dt * rand_global;
+        cresult = philox2x32(c, k);
+        const float rand_local = r123::boxmuller(cresult.v[0],cresult.v[1]).x;
         _pp_var_ouNoise[i_] +=
                 _pp_var_theta * (_pp_var_mu - _pp_var_ouNoise[i_]) * dt +
-                (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_normal
+                (1-_pp_var_alpha) * _pp_var_sigma * sqrt_dt * rand_local
                 + _pp_var_alpha * Iapp_global;
         _pp_var_vec_i[node_indexi_] -= _pp_var_ouNoise[i_];
     }
@@ -89,7 +78,6 @@ static void post_event(arb_mechanism_ppack*) {}
 
 #undef PPACK_IFACE_BLOCK
 }
-
 
 extern "C" {
   arb_mechanism_interface* make_arb_IOU_catalogue_ou_noise_interface_multicore() {

@@ -459,7 +459,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     auto nintdom = fvm_intdom(rec, gids, fvm_info.cell_to_intdom);
 
     // Discretize cells, build matrix.
-
     fvm_cv_discretization D = fvm_cv_discretize(cells, global_props.default_parameters, context_);
 
     std::vector<index_type> cv_to_intdom(D.size());
@@ -649,6 +648,7 @@ std::vector<fvm_gap_junction> fvm_lowered_cell_impl<Backend>::fvm_gap_junctions(
     std::vector<fvm_gap_junction> gj_vec;
 
     std::unordered_map<cell_gid_type, std::vector<unsigned>> gid_to_cvs;
+
     for (auto cell_idx: util::make_span(0, D.n_cell())) {
         if (rec.gap_junctions_on(gids[cell_idx]).empty()) continue;
 
@@ -660,6 +660,7 @@ std::vector<fvm_gap_junction> fvm_lowered_cell_impl<Backend>::fvm_gap_junctions(
             gid_to_cvs[gids[cell_idx]].push_back(cv);
         }
     }
+
     label_resolution_map resolution_map({gap_junction_data, gids});
     auto gj_resolver = resolver(&resolution_map);
     for (auto gid: gids) {

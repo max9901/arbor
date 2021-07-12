@@ -199,6 +199,7 @@ int main() {
     arb::simulation sim(recipe, decomp, context);
     meter.checkpoint("Create simmodel", context);
 
+
     // Set up the probe that will measure voltage in the cell.
     auto sched = arb::regular_schedule(0.025);
     std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells); // This is where the voltage samples will be stored as (time, value) pairs
@@ -323,8 +324,11 @@ arb::cable_cell IO_cell(){
     decor.paint("(all)"_reg, leak);
 
     arb::mechanism_desc ou_noise("ns_ou_noise");
-//    ou_noise["seed"] = 1625748181;
     decor.paint("(all)"_reg, ou_noise);
+
+
+    arb::mechanism_desc glomerulus("ns_glomerulus");
+    decor.paint("(all)"_reg, glomerulus);
 
     // Add a spike detector to the soma at the beginning
     //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});
@@ -341,5 +345,6 @@ arb::cable_cell IO_cell(){
     // Add a synapse
     //    decor.place(arb::mlocation{0, 0.5}, "expsyn");
 
-    return arb::cable_cell(tree, labels, decor);
+    auto out = arb::cable_cell(tree, labels, decor);
+    return out;
 }

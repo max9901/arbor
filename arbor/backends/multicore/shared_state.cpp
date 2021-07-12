@@ -326,9 +326,8 @@ void shared_state::set_dt() {
 void shared_state::add_gj_current() {
     for (unsigned i = 0; i < n_gj; i++) {
         auto gj = gap_junctions[i];
-        auto curr = gj.weight *
-                    (voltage[gj.loc.second] - voltage[gj.loc.first]); // nA
 
+        auto curr = gj.weight * (voltage[gj.loc.second] - voltage[gj.loc.first]); // nA
         current_density[gj.loc.first] -= curr;
     }
 }

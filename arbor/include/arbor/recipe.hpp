@@ -54,7 +54,6 @@ struct cell_connection {
 struct gap_junction_connection {
     cell_global_label_type peer;
     cell_local_label_type local;
-
     double ggap;
 
     gap_junction_connection(cell_global_label_type peer, cell_local_label_type local, double g):

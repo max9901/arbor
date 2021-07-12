@@ -4,16 +4,11 @@
 #include <arbor/mechanism_abi.h>
 
 extern "C" {
-  arb_mechanism_type make_arb_IOU_catalogue_ou_noise() {
-    static arb_field_info globals[] = { { "theta", "",         1, -1.7976931348623157e+308, 1.7976931348623157e+308 },
-                                        { "sigma", "",         1, -1.7976931348623157e+308, 1.7976931348623157e+308 },
-                                        { "mu"   , "",         1, -1.7976931348623157e+308, 1.7976931348623157e+308 },
-                                        { "alpha", "",       0.5, -1.7976931348623157e+308, 1.7976931348623157e+308 },
-                                        { "seed" , "", 851773408, -1.7976931348623157e+308, 1.7976931348623157e+308 },
-                                        { "cnt"  , "", 0, -1.7976931348623157e+308, 1.7976931348623157e+308 }};
-    static arb_size_type n_globals = 6;
-    static arb_field_info state_vars[] = { { "ouNoise", "", NAN, -1.7976931348623157e+308, 1.7976931348623157e+308 }};
-    static arb_size_type n_state_vars = 1;
+  arb_mechanism_type make_arb_IOU_catalogue_glomerulus() {
+    static arb_field_info globals[] = {};
+    static arb_size_type n_globals = 0;
+    static arb_field_info state_vars[] = {};
+    static arb_size_type n_state_vars = 0;
     static arb_field_info parameters[] = {};
     static arb_size_type n_parameters = 0;
     static arb_ion_info ions[] = { };
@@ -22,8 +17,8 @@ extern "C" {
     arb_mechanism_type result;
     result.abi_version=ARB_MECH_ABI_VERSION;
     result.fingerprint="<placeholder>";
-    result.name="ou_noise";
-    result.kind=arb_mechanism_kind_density;
+    result.name="glomerulus";
+    result.kind=arb_mechanism_kind_point;
     result.is_linear=false;
     result.has_post_events=false;
     result.globals=globals;
@@ -37,6 +32,6 @@ extern "C" {
     return result;
   }
 
-  arb_mechanism_interface* make_arb_IOU_catalogue_ou_noise_interface_multicore();
-  arb_mechanism_interface* make_arb_IOU_catalogue_ou_noise_interface_gpu();
+  arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_interface_multicore();
+  arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_interface_gpu();
 }
