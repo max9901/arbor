@@ -7,10 +7,7 @@
 #include <arbor/mechanism_abi.h>
 #include <cmath>
 
-#include "glomerulus_methods.h"
-static glomerulus_methods* ggj;
-
-namespace arb::IOU_catalogue::kernel_glomerulus {
+namespace arb::IOU_catalogue::kernel_linear_gapJunction {
     static constexpr unsigned simd_width_ = 0;
 
 #define S(x) std::cout << #x << "\t\t" << x << std::endl;
@@ -41,13 +38,16 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 
 // interface methods
     static void init(arb_mechanism_ppack* pp) {
-        PPACK_IFACE_BLOCK;
-        std::cout << "\n\nTODO \n\n";
-        exit(0);
+        std::cout << "init linear_gapJunction "<< std::endl;
     }
 
     static void compute_currents(arb_mechanism_ppack* pp) {
         PPACK_IFACE_BLOCK;
+        for (unsigned i = 0; i < _pp_var_gap_junction_width; i++) {
+            auto gj = _pp_var_gap_junctions[i];
+            auto curr = gj.weight * (_pp_var_vec_v[gj.loc.second] - _pp_var_vec_v[gj.loc.first]); // nA
+            _pp_var_vec_i[gj.loc.first] -= curr; //no need for weiht right now todo is change the way it handles weights put them in the weight vector.
+        }
     }
 
     static void advance_state(arb_mechanism_ppack* pp) {}
@@ -59,16 +59,16 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 }
 
 extern "C" {
-arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_interface_multicore() {
+arb_mechanism_interface* make_arb_IOU_catalogue_linear_gapJunction_interface_multicore() {
     static arb_mechanism_interface result;
-    result.partition_width = arb::IOU_catalogue::kernel_glomerulus::simd_width_;
+    result.partition_width = arb::IOU_catalogue::kernel_linear_gapJunction::simd_width_;
     result.backend=arb_backend_kind_cpu;
     result.alignment=1;
-    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::init;
-    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::compute_currents;
-    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::apply_events;
-    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::advance_state;
-    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::write_ions;
-    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::post_event;
+    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::init;
+    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::compute_currents;
+    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::apply_events;
+    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::advance_state;
+    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::write_ions;
+    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::post_event;
     return &result;
 }}

@@ -146,7 +146,6 @@ void istim_state::reset() {
 
 void istim_state::add_current(const array& time, const iarray& cv_to_intdom, array& current_density) {
     constexpr double two_pi = 2*math::pi<double>;
-
     // Consider vectorizing...
     for (auto i: util::count_along(accu_index_)) {
         // Advance index into envelope until either
@@ -326,9 +325,9 @@ void shared_state::set_dt() {
 void shared_state::add_gj_current() {
     for (unsigned i = 0; i < n_gj; i++) {
         auto gj = gap_junctions[i];
-
         auto curr = gj.weight * (voltage[gj.loc.second] - voltage[gj.loc.first]); // nA
-        current_density[gj.loc.first] -= curr;
+        //TODO
+//        current_density[gj.loc.first] -= curr;
     }
 }
 
@@ -426,13 +425,20 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     util::padded_allocator<> pad(alignment);
 
     // Set internal variables
+
     m.num_ions_      = m.mech_.n_ions;
-    m.width_padded_  = math::round_up(pos_data.cv.size(), alignment);     // Extend width to account for requisite SIMD padding.
+
+    if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
+        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);         // Extend width to account for requisite SIMD padding.
+    }else{
+        m.width_padded_ = math::round_up(gap_junctions.size(), alignment);    // give the amount of gap junctions as option
+    }
+
     m.time_ptr_ptr   = &time_ptr;
 
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
-    m.ppack_.width            = pos_data.cv.size();
+    m.ppack_.width = pos_data.cv.size();
     m.ppack_.mechanism_id     = id;
     m.ppack_.vec_ci           = cv_to_cell.data();
     m.ppack_.vec_di           = cv_to_intdom.data();
@@ -445,7 +451,9 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     m.ppack_.time_since_spike = time_since_spike.data();
     m.ppack_.n_detectors      = n_detector;
     m.ppack_.events           = {};
-    m.ppack_.vec_t            = nullptr;
+    m.ppack_.vec_t              = nullptr;
+    m.ppack_.gap_junctions      = gap_junctions.data();
+    m.ppack_.gap_junction_width = n_gj;
 
     auto mult_in_place = !pos_data.multiplicity.empty();
 
@@ -481,6 +489,8 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         ptr += n;
     };
 
+
+    //HIT HHIT HIT HIT HIER MOETEN WE HET FIXEN VOOR ANDERE SOORT MECHANISME
     // Initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage

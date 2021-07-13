@@ -17,8 +17,8 @@
 
 #include <arborenv/gpu_env.hpp>
 
-//#include "mechanisms/Local_catalogue.cpp"
 
+//#include "mechanisms/Local_catalogue.cpp"
 //#include <arbor/assert_macro.hpp>
 //#include <arbor/cable_cell.hpp>
 //#include <arbor/profile/profiler.hpp>
@@ -323,12 +323,15 @@ arb::cable_cell IO_cell(){
     leak["gmax"] = 1.3e-05;
     decor.paint("(all)"_reg, leak);
 
-    arb::mechanism_desc ou_noise("ns_ou_noise");
+    arb::mechanism_desc ou_noise("ns_ou_noise/seed=10");
     decor.paint("(all)"_reg, ou_noise);
 
 
-    arb::mechanism_desc glomerulus("ns_glomerulus");
-    decor.paint("(all)"_reg, glomerulus);
+    //dit is komplete bs moet anders gefixt worden, aka in global properties of in on_connection :D
+    arb::mechanism_desc ns_linear_gapJunction("ns_linear_gapJunction");
+    decor.paint("(all)"_reg, ns_linear_gapJunction);
+
+
 
     // Add a spike detector to the soma at the beginning
     //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});

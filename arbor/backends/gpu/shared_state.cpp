@@ -267,7 +267,10 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
     m.ppack_.temperature_degC = temperature_degC.data();
     m.ppack_.diam_um          = diam_um.data();
     m.ppack_.time_since_spike = time_since_spike.data();
-    m.ppack_.n_detectors      = n_detector;
+    m.ppack_.n_detectors        = n_detector;
+    m.ppack_.gap_junctions      = gap_junctions.data();
+    m.ppack_.gap_junction_width = gap_junctions.size();
+
 
     // Allocate view pointers
     m.state_vars_ = std::vector<arb_value_type*>(m.mech_.n_state_vars);

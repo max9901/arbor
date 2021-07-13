@@ -213,6 +213,13 @@ struct fvm_initialization_data {
     std::unordered_map<cell_gid_type, fvm_size_type> num_targets;
 };
 
+// gap junction group
+struct gap_junction_group{
+    arb_size_type size;
+    arb::mechanism_ptr mechanism_;   //could also point to custom mechanisms build in the default category.
+    std::vector<fvm_gap_junction> data_;
+};
+
 // Common base class for FVM implementation on host or gpu back-end.
 
 struct fvm_lowered_cell {

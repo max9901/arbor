@@ -39,7 +39,10 @@
 
 namespace arb {
 
-template <class Backend>
+
+
+
+    template <class Backend>
 class fvm_lowered_cell_impl: public fvm_lowered_cell {
 public:
     using backend = Backend;
@@ -411,6 +414,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
         fvm_info.target_data.add_cell();
         fvm_info.gap_junction_data.add_cell();
 
+
         unsigned count = 0;
         for (const auto& [label, range]: c.detector_ranges()) {
             fvm_info.source_data.add_label(label, range);
@@ -453,9 +457,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     };
 
     // Check for physically reasonable membrane volages?
-
     check_voltage_mV_ = global_props.membrane_voltage_limit_mV;
-
     auto nintdom = fvm_intdom(rec, gids, fvm_info.cell_to_intdom);
 
     // Discretize cells, build matrix.
@@ -471,12 +473,13 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     sample_events_ = sample_event_stream(nintdom);
 
     // Discretize mechanism data.
-
     fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells, D, context_);
 
+    /// als we deze nu eens doormappen naar de shared state en pointer packs of mechanismes. ?
     // Discretize and build gap junction info.
-
     auto gj_vector = fvm_gap_junctions(cells, gids, fvm_info.gap_junction_data, rec, D);
+
+    // Fill .... in shared state only if gap junctions mechanisms are present.
 
     // Fill src_to_spike and cv_to_cell vectors only if mechanisms with post_events implemented are present.
     post_events_ = mech_data.post_events;
@@ -499,7 +502,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
 
     // Create shared cell state.
     // (SIMD padding requires us to check each mechanism for alignment/padding constraints.)
-
     unsigned data_alignment = util::max_value(
         util::transform_view(keys(mech_data.mechanisms),
             [&](const std::string& name) { return mech_instance(name).mech->data_alignment(); }));
@@ -510,7 +512,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
                 data_alignment? data_alignment: 1u);
 
     // Instantiate mechanisms, ions, and stimuli.
-
     for (auto& i: mech_data.ions) {
         const std::string& ion_name = i.first;
 
@@ -547,12 +548,10 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
         // Mechanism weights are F·α where α ∈ [0, 1] is the proportional
         // contribution in the CV, and F is the scaling factor required
         // to convert from the mechanism current contribution units to A/m².
-
         switch (config.kind) {
         case arb_mechanism_kind_point:
             // Point mechanism contributions are in [nA]; CV area A in [µm^2].
             // F = 1/A * [nA/µm²] / [A/m²] = 1000/A.
-
             for (auto i: count_along(config.cv)) {
                 auto cv = layout.cv[i];
                 layout.weight[i] = 1000/D.cv_area[cv];
@@ -572,7 +571,12 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
             break;
         case arb_mechanism_kind_density:
             // Current density contributions from mechanism are already in [A/m²].
-
+            for (auto i: count_along(layout.cv)) {
+                layout.weight[i] = config.norm_area[i];
+            }
+            break;
+        case arb_mechanism_kind_gap_junction:
+            // Current density contributions from mechanism are already in [A/m²].
             for (auto i: count_along(layout.cv)) {
                 layout.weight[i] = config.norm_area[i];
             }
@@ -584,6 +588,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
         }
 
         auto minst = mech_instance(name);
+
         state_->instantiate(*minst.mech, mech_id++, minst.overrides, layout);
         mechptr_by_name[name] = minst.mech.get();
 
@@ -598,7 +603,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
             mechanisms_.push_back(mechanism_ptr(minst.mech.release()));
         }
     }
-
 
     std::vector<index_type> detector_cv;
     std::vector<value_type> detector_threshold;
@@ -631,9 +635,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     }
 
     threshold_watcher_ = backend::voltage_watcher(*state_, detector_cv, detector_threshold, context_);
-
     reset();
-
     return fvm_info;
 }
 
@@ -679,6 +681,7 @@ std::vector<fvm_gap_junction> fvm_lowered_cell_impl<Backend>::fvm_gap_junctions(
     }
     return gj_vec;
 }
+
 
 template <typename Backend>
 fvm_size_type fvm_lowered_cell_impl<Backend>::fvm_intdom(

@@ -2,6 +2,7 @@
 #define ARB_MECH_ABI
 
 #include <arbor/arb_types.h>
+#include <arbor/fvm_types.hpp>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +22,7 @@ typedef uint32_t arb_mechanism_kind;
 #define arb_mechanism_kind_point 1
 #define arb_mechanism_kind_density 2
 #define arb_mechanism_kind_reversal_potential 3
+#define arb_mechanism_kind_gap_junction 4
 
 typedef uint32_t arb_backend_kind;
 #define arb_backend_kind_nil 0
@@ -93,6 +95,10 @@ typedef struct arb_mechanism_ppack {
     arb_value_type** state_vars;                    // Array of integrable state       (Array)
     arb_value_type*  globals;                       // Array of global constant state  (Scalar)
     arb_ion_state*   ion_states;                    // Array of views into shared state
+
+    arb_size_type   gap_junction_width;             // Number of gap Junctions
+    arb::fvm_gap_junction* gap_junctions;           // Array of view into the gap junction vector
+
 } arb_mechanism_ppack;
 
 
@@ -182,7 +188,7 @@ typedef struct arb_mechanism_type {
     unsigned long             abi_version;      // plugin ABI version used to build this mechanism
     arb_mechanism_fingerprint fingerprint;      // provide a unique ID
     const char*               name;             // provide unique name
-    arb_mechanism_kind        kind;             // Point, Density, ReversalPotential, ...
+    arb_mechanism_kind        kind;             // Point, Density, ReversalPotential, gap junction, ...
     bool                      is_linear;        // linear, homogeneous mechanism
     bool                      has_post_events;
     // Tables
