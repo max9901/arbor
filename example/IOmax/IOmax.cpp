@@ -328,9 +328,11 @@ arb::cable_cell IO_cell(){
 
 
     //dit is komplete bs moet anders gefixt worden, aka in global properties of in on_connection :D
-    arb::mechanism_desc ns_linear_gapJunction("ns_linear_gapJunction");
-    decor.paint("(all)"_reg, ns_linear_gapJunction);
+//    arb::mechanism_desc ns_linear_gapJunction("ns_linear_gapJunction");
+//    decor.paint("(all)"_reg, ns_linear_gapJunction);
 
+    arb::mechanism_desc glomerulus("ns_glomerulus");
+    decor.paint("(all)"_reg, glomerulus);
 
 
     // Add a spike detector to the soma at the beginning

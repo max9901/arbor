@@ -1,13 +1,13 @@
 #include <arbor/arb_types.h>
 
 struct glomerulus_methods {
-//state->
-    arb_value_type dend1_V;     //is dit de voltage ?
-    arb_value_type dend2_V;     //is dit de voltage ?
 
+    arb_value_type dend1_V;        //is dit de voltage ?
+    arb_value_type dend2_V;        //is dit de voltage ?
     arb_value_type I_inward_dend1; //is dit de stroom ?
     arb_value_type I_inward_dend2; //is dit de stroom ?
 
+//state->
     arb_value_type neck1_V;
     arb_value_type neck1_n_CA;
     arb_value_type neck1_n_CL;
@@ -42,7 +42,6 @@ struct glomerulus_methods {
     arb_value_type F;
     arb_value_type R;
     arb_value_type T;
-
     arb_value_type dend1_diam;
     arb_value_type dend1_half_G_CA;
     arb_value_type dend1_half_G_CL;
@@ -50,7 +49,6 @@ struct glomerulus_methods {
     arb_value_type dend1_n_CA;
     arb_value_type dend1_n_CL;
     arb_value_type dend1_n_K;
-
     arb_value_type dend2_diam;
     arb_value_type dend2_half_G_CA;
     arb_value_type dend2_half_G_CL;
@@ -58,7 +56,6 @@ struct glomerulus_methods {
     arb_value_type dend2_n_CA;
     arb_value_type dend2_n_CL;
     arb_value_type dend2_n_K;
-
     arb_value_type head1_E_K_NA;
     arb_value_type head1_E_head_ca;
     arb_value_type head1_Gleak;
@@ -87,7 +84,6 @@ struct glomerulus_methods {
     arb_value_type head1_tau_r;
     arb_value_type head1_tau_rise_nmda;
     arb_value_type head1_theta_gaba;
-
     arb_value_type head2_E_K_NA;
     arb_value_type head2_E_head_ca;
     arb_value_type head2_Gleak;
@@ -116,145 +112,145 @@ struct glomerulus_methods {
     arb_value_type head2_tau_r;
     arb_value_type head2_tau_rise_nmda;
     arb_value_type head2_theta_gaba;
-
     arb_value_type neck1_Gleak;
     arb_value_type neck1_diam;
     arb_value_type neck1_length;
     arb_value_type neck1_n_K;
-
     arb_value_type neck2_Gleak;
     arb_value_type neck2_diam;
     arb_value_type neck2_length;
     arb_value_type neck2_n_K;
-
     arb_value_type out_n_CA;
     arb_value_type out_n_CL;
     arb_value_type out_n_K;
 }; // glomerulus_methods
 
+
+
 void ggj_init(struct glomerulus_methods * self) {
-    self->Cm = 2e-6*1e4;
-    self->D_CA = 0.79e-9;
-    self->D_CL = 2.08e-9;
-    self->F = 96485;
-    self->R = 8.314;
-    self->T = 293;
-    self->T = 293;
-    self->dend1_half_G_CL = 100;
-    self->dend1_half_G_CA = 100;
-    self->dend2_half_G_CL = 100;
-    self->dend2_half_G_CA = 100;
-    self->neck1_Gleak = 1.0e-8;
-    self->neck2_Gleak = 1.0e-8;
-    self->head1_tau_d = 0.255;
-    self->head1_tau_r = 0.0050000000000000001;
-    self->head1_gbar_gaba = 1.0000000000000001e-9;
-    self->head1_tau_gaba0 = 0.029999999999999999;
-    self->head1_eta_gaba = 0.034000000000000002;
-    self->head1_theta_gaba = 0.0011999999999999999;
-    self->head1_sigma_gaba = 6.0000000000000002e-5;
-    self->head1_beta = 0.080000000000000002;
-    self->head1_Kp = 0.00020000000000000001;
-    self->head1_Ip = 0.00046999999999999999;
-    self->head1_gamma = 0;
-    self->head1_I_max = 30;
-    self->head1_kK = 9;
-    self->head1_kCL = 1;
-    self->head1_Gleak = 1.0e-8;
-    self->head1_n_Mg_out = 2;
-    self->head1_gbar_nmda = 2.0000000000000001e-10;
-    self->head1_tau_decay_nmda = 0.088999999999999996;
-    self->head1_tau_rise_nmda = 0.0011999999999999999;
-    self->head1_E_K_NA = 0.01;
-    self->head1_E_head_ca = 0.01;
-    self->head1_nTB = 0.10000000000000001;
-    self->head1_kf = 1000000.0;
-    self->head1_kb = 500;
-
-    self->head2_tau_d = 0.255;
-    self->head2_tau_r = 0.0050000000000000001;
-    self->head2_gbar_gaba = 1.0000000000000001e-9;
-    self->head2_tau_gaba0 = 0.029999999999999999;
-    self->head2_eta_gaba = 0.034000000000000002;
-    self->head2_theta_gaba = 0.0011999999999999999;
-    self->head2_sigma_gaba = 6.0000000000000002e-5;
-    self->head2_beta = 0.080000000000000002;
-    self->head2_Kp = 0.00020000000000000001;
-    self->head2_Ip = 0.00046999999999999999;
-    self->head2_gamma = 0;
-    self->head2_I_max = 30;
-    self->head2_kK = 9;
-    self->head2_kCL = 1;
-    self->head2_Gleak = 1.0e-8;
-    self->head2_n_Mg_out = 2;
-    self->head2_gbar_nmda = 2.0000000000000001e-10;
-    self->head2_tau_decay_nmda = 0.088999999999999996;
-    self->head2_tau_rise_nmda = 0.0011999999999999999;
-    self->head2_E_K_NA = 0.01;
-    self->head2_E_head_ca = 0.01;
-    self->head2_nTB = 0.10000000000000001;
-    self->head2_kf = 1000000.0;
-    self->head2_kb = 500;
-
-    self->out_n_K = 3;
-    self->out_n_CL = 134;
-    self->out_n_CA = 2;
-
-    self->neck1_V = -0.060999999999999999;
-    self->neck1_diam = 9.9999999999999995e-8;
-    self->neck1_length = 9.9999999999999995e-8;
-    self->neck1_n_K = 85;
-    self->neck1_n_CL = 5;
-    self->neck1_n_CA = 10;
-
-    self->head1_V = -0.060999999999999999;
-    self->head1_diam = 9.9999999999999995e-8;
-    self->head1_length = 9.9999999999999995e-8;
-    self->head1_n_K = 85;
-    self->head1_n_CL = 3.5;
-    self->head1_n_CA = 10;
-    self->head1_n_B = 0;
-    self->head1_ggaba = 0;
-    self->head1_ggap = 1.5e-11;
-    self->head1_Y = 0;
-    self->head1_X = 0;
-    self->head1_ca_presyn = 0;
-
-    self->neck2_V = -0.060999999999999999;
-    self->neck2_diam = 9.9999999999999995e-8;
-    self->neck2_length = 9.9999999999999995e-8;
-    self->neck2_n_K = 85;
-    self->neck2_n_CL = 5;
-    self->neck2_n_CA = 10;
-
-    self->head2_V = -0.060999999999999999;
-    self->head2_n_CL = 3.5;
-    self->head2_n_CA = 10;
-    self->head2_n_B = 0;
-    self->head2_Y = 0;
-    self->head2_X = 0;
-    self->head2_ggaba = 0;
-    self->head2_ca_presyn = 0;
-
-    self->head2_diam = 9.9999999999999995e-8;
-    self->head2_length = 9.9999999999999995e-8;
-    self->head2_n_K = 85;
-
-
-    self->head2_ggap = 1.5e-11;
-
     self->dend1_V = -0.060999999999999999;
-    self->dend1_diam = 9.9999999999999995e-7;
-    self->dend1_length = 9.9999999999999995e-7;
-    self->dend1_n_K = 85;
-    self->dend1_n_CL = 15;
-    self->dend1_n_CA = 15;
     self->dend2_V = -0.060999999999999999;
-    self->dend2_diam = 9.9999999999999995e-7;
-    self->dend2_length = 9.9999999999999995e-7;
-    self->dend2_n_K = 85;
-    self->dend2_n_CL = 15;
-    self->dend2_n_CA = 15;
+
+    self->Cm                  = 2e-6*1e4;
+    self->D_CA                = 0.79e-9;
+    self->D_CL                = 2.08e-9;
+    self->F                   = 96485;
+    self->R                   = 8.314;
+    self->T                   = 293;
+
+    self->dend1_diam          = 9.9999999999999995e-7;
+    self->dend1_half_G_CA     = 100;
+    self->dend1_half_G_CL     = 100;
+    self->dend1_length        = 9.9999999999999995e-7;
+    self->dend1_n_CA          = 15;
+    self->dend1_n_CL          = 15;
+    self->dend1_n_K           = 85;
+
+    self->dend2_diam      = 9.9999999999999995e-7;
+    self->dend2_half_G_CA = 100;
+    self->dend2_half_G_CL = 100;
+    self->dend2_length    = 9.9999999999999995e-7;
+    self->dend2_n_CA      = 15;
+    self->dend2_n_CL      = 15;
+    self->dend2_n_K       = 85;
+
+    self->head1_E_K_NA         = 0.01;
+    self->head1_E_head_ca      = 0.01;
+    self->head1_Gleak          = 1.0e-8;
+    self->head1_I_max          = 30;
+    self->head1_Ip             = 0.00046999999999999999;
+    self->head1_Kp             = 0.00020000000000000001;
+    self->head1_beta           = 0.080000000000000002;
+    self->head1_diam           = 9.9999999999999995e-8;
+    self->head1_eta_gaba       = 0.034000000000000002;
+    self->head1_gamma          = 0;
+    self->head1_gbar_gaba      = 1.0000000000000001e-9;
+    self->head1_gbar_nmda      = 2.0000000000000001e-10;
+    self->head1_ggap           = 1.5e-11;
+    self->head1_kCL            = 1;
+    self->head1_kK             = 9;
+    self->head1_kb             = 500;
+    self->head1_kf             = 1000000.0;
+    self->head1_length         = 9.9999999999999995e-8;
+    self->head1_nTB            = 0.10000000000000001;
+    self->head1_n_K            = 85;
+    self->head1_n_Mg_out       = 2;
+    self->head1_sigma_gaba     = 6.0000000000000002e-5;
+    self->head1_tau_d          = 0.255;
+    self->head1_tau_decay_nmda = 0.088999999999999996;
+    self->head1_tau_gaba0      = 0.029999999999999999;
+    self->head1_tau_r          = 0.0050000000000000001;
+    self->head1_tau_rise_nmda  = 0.0011999999999999999;
+    self->head1_theta_gaba     = 0.0011999999999999999;
+
+
+
+    self->head2_E_K_NA         = 0.01;
+    self->head2_E_head_ca      = 0.01;
+    self->head2_Gleak          = 1.0e-8;
+    self->head2_I_max          = 30;
+    self->head2_Ip             = 0.00046999999999999999;
+    self->head2_Kp             = 0.00020000000000000001;
+    self->head2_beta           = 0.080000000000000002;
+    self->head2_diam           = 9.9999999999999995e-8;
+    self->head2_eta_gaba       = 0.034000000000000002;
+    self->head2_gamma          = 0;
+    self->head2_gbar_gaba      = 1.0000000000000001e-9;
+    self->head2_gbar_nmda      = 2.0000000000000001e-10;
+    self->head2_ggap           = 1.5e-11;
+    self->head2_kCL            = 1;
+    self->head2_kK             = 9;
+    self->head2_kb             = 500;
+    self->head2_kf             = 1000000.0;
+    self->head2_length         = 9.9999999999999995e-8;
+    self->head2_nTB            = 0.10000000000000001;
+    self->head2_n_K            = 85;
+    self->head2_n_Mg_out       = 2;
+    self->head2_sigma_gaba     = 6.0000000000000002e-5;
+    self->head2_tau_d          = 0.255;
+    self->head2_tau_decay_nmda = 0.088999999999999996;
+    self->head2_tau_gaba0      = 0.029999999999999999;
+    self->head2_tau_r          = 0.0050000000000000001;
+    self->head2_tau_rise_nmda  = 0.0011999999999999999;
+    self->head2_theta_gaba     = 0.0011999999999999999;
+
+    self->neck1_Gleak  = 1.0e-8;
+    self->neck1_diam   = 9.9999999999999995e-8;
+    self->neck1_length = 9.9999999999999995e-8;
+    self->neck1_n_K    = 85;
+
+    self->neck2_Gleak  = 1.0e-8;
+    self->neck2_diam   = 9.9999999999999995e-8;
+    self->neck2_length = 9.9999999999999995e-8;
+    self->neck2_n_K    = 85;
+
+    self->out_n_CA = 2;
+    self->out_n_CL = 134;
+    self->out_n_K  = 3;
+
+    //-->states
+    self->neck1_V              = -0.060999999999999999;
+    self->neck1_n_CA           = 10;
+    self->neck1_n_CL           = 5;
+    self->head1_V              = -0.060999999999999999;
+    self->head1_n_CA           = 10;
+    self->head1_n_CL           = 3.5;
+    self->head1_n_B            = 0;
+    self->head1_X              = 0;
+    self->head1_Y              = 0;
+    self->head1_ggaba          = 0;
+    self->head1_ca_presyn      = 0;
+    self->neck2_V              = -0.060999999999999999;
+    self->neck2_n_CA           = 10;
+    self->neck2_n_CL           = 5;
+    self->head2_V              = -0.060999999999999999;
+    self->head2_n_CL           = 3.5;
+    self->head2_n_CA           = 10;
+    self->head2_n_B            = 0;
+    self->head2_X              = 0;
+    self->head2_Y              = 0;
+    self->head2_ggaba          = 0;
+    self->head2_ca_presyn      = 0;
 }
 void ggj_timestep(struct glomerulus_methods * self, double dt) {
 //do some intermediate stuff
@@ -387,11 +383,9 @@ void ggj_timestep(struct glomerulus_methods * self, double dt) {
 //update states
     self->I_inward_dend1 = x18;
     self->I_inward_dend2 = x79;
-
     self->neck1_V += dt * grad_neck1_V;
     self->neck1_n_CL += dt * grad_neck1_n_CL;
     self->neck1_n_CA += dt * grad_neck1_n_CA;
-
     self->head1_V += dt * grad_head1_V;
     self->head1_n_CL += dt * grad_head1_n_CL;
     self->head1_n_CA += dt * grad_head1_n_CA;
@@ -400,11 +394,9 @@ void ggj_timestep(struct glomerulus_methods * self, double dt) {
     self->head1_X += dt * grad_head1_X;
     self->head1_ggaba += dt * grad_head1_ggaba;
     self->head1_ca_presyn += dt * grad_head1_ca_presyn;
-
     self->neck2_V += dt * grad_neck2_V;
     self->neck2_n_CL += dt * grad_neck2_n_CL;
     self->neck2_n_CA += dt * grad_neck2_n_CA;
-
     self->head2_V += dt * grad_head2_V;
     self->head2_n_CL += dt * grad_head2_n_CL;
     self->head2_n_CA += dt * grad_head2_n_CA;
@@ -414,3 +406,28 @@ void ggj_timestep(struct glomerulus_methods * self, double dt) {
     self->head2_ggaba += dt * grad_head2_ggaba;
     self->head2_ca_presyn += dt * grad_head2_ca_presyn;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
