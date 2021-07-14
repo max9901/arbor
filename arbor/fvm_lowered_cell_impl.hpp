@@ -39,9 +39,6 @@
 
 namespace arb {
 
-
-
-
     template <class Backend>
 class fvm_lowered_cell_impl: public fvm_lowered_cell {
 public:
@@ -474,6 +471,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
 
     // Discretize mechanism data.
     fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells, D, context_);
+
 
     /// als we deze nu eens doormappen naar de shared state en pointer packs of mechanismes. ?
     // Discretize and build gap junction info.

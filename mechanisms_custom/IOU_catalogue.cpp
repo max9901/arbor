@@ -11,18 +11,20 @@ namespace arb {
 mechanism_catalogue build_IOU_catalogue() {
     mechanism_catalogue cat;
 
+    //done !
     cat.add("ou_noise", make_arb_IOU_catalogue_ou_noise());
-    cat.add("glomerulus", make_arb_IOU_catalogue_glomerulus());
-    cat.add("linear_gapJunction", make_arb_IOU_catalogue_linear_gapJunction());
-
     cat.register_implementation("ou_noise", std::make_unique<mechanism>(make_arb_IOU_catalogue_ou_noise(), *make_arb_IOU_catalogue_ou_noise_interface_multicore()));
     cat.register_implementation("ou_noise", std::make_unique<mechanism>(make_arb_IOU_catalogue_ou_noise(), *make_arb_IOU_catalogue_ou_noise_interface_gpu()));
 
+    //not tested !
+    cat.add("linear_gapJunction", make_arb_IOU_catalogue_linear_gapJunction());
+    cat.register_implementation("linear_gapJunction",std::make_unique<mechanism>(make_arb_IOU_catalogue_linear_gapJunction(), *make_arb_IOU_catalogue_linear_gapJunction_interface_multicore()));
+    cat.register_implementation("linear_gapJunction",std::make_unique<mechanism>(make_arb_IOU_catalogue_linear_gapJunction(), *make_arb_IOU_catalogue_linear_gapJunction_interface_gpu()));
+
+    //cpu done waiting on validation
+    cat.add("glomerulus", make_arb_IOU_catalogue_glomerulus());
     cat.register_implementation("glomerulus", std::make_unique<mechanism>(make_arb_IOU_catalogue_glomerulus(), *make_arb_IOU_catalogue_glomerulus_interface_multicore()));
 //    cat.register_implementation("glomerulus", std::make_unique<mechanism>(make_arb_IOU_catalogue_glomerulus(), *make_arb_IOU_catalogue_glomerulus_interface_gpu()));
-
-    cat.register_implementation("linear_gapJunction",std::make_unique<mechanism>(make_arb_IOU_catalogue_linear_gapJunction(), *make_arb_IOU_catalogue_linear_gapJunction_interface_multicore()));
-//    cat.register_implementation("linear_Gapjunction",std::make_unique<mechanism>(make_arb_IOU_catalogue_linear_gapJunction(), *make_arb_IOU_catalogue_linear_gapJunction_interface_gpu()));
 
   return cat;
 }

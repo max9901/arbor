@@ -232,7 +232,6 @@ int main() {
 }
 
 
-
 void write_trace_json(const std::vector<arb::trace_vector<double>>& traces, unsigned rank, unsigned cell) {
     std::string path = "./voltages_" + std::to_string(rank) + "_" + std::to_string(cell) + ".json";
     nlohmann::json json;
@@ -331,8 +330,8 @@ arb::cable_cell IO_cell(){
 //    arb::mechanism_desc ns_linear_gapJunction("ns_linear_gapJunction");
 //    decor.paint("(all)"_reg, ns_linear_gapJunction);
 
-    arb::mechanism_desc glomerulus("ns_glomerulus");
-    decor.paint("(all)"_reg, glomerulus);
+//    arb::mechanism_desc glomerulus("ns_glomerulus");
+//    decor.paint("(all)"_reg, glomerulus);
 
 
     // Add a spike detector to the soma at the beginning
