@@ -1,16 +1,15 @@
 //
 // Created by max on 09-07-21.
 //
+//#include "iostream" //debugging
+//#define S(x) std::cout << #x << "\t\t" << x << std::endl;
 
-#include "iostream" //debugging
-#include <arbor/fvm_types.hpp>
+#include <arbor/arb_types.h>
 #include <arbor/mechanism_abi.h>
 #include <cmath>
 
 namespace arb::IOU_catalogue::kernel_glomerulus {
     static constexpr unsigned simd_width_ = 0;
-
-#define S(x) std::cout << #x << "\t\t" << x << std::endl;
 
 #define PPACK_IFACE_BLOCK \
 [[maybe_unused]] auto  _pp_var_width             = pp->width;\
@@ -33,7 +32,6 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 [[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
 [[maybe_unused]] auto* _pp_var_gap_junctions     = pp->gap_junctions; \
 [[maybe_unused]] auto _pp_var_gap_junction_width = pp->gap_junction_width;\
-                          \
 [[maybe_unused]] auto& _pp_var_Cm                   = pp->globals[0];\
 [[maybe_unused]] auto& _pp_var_D_CA                 = pp->globals[1];\
 [[maybe_unused]] auto& _pp_var_D_CL                 = pp->globals[2];\
@@ -121,7 +119,6 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 [[maybe_unused]] auto& _pp_var_out_n_CA             = pp->globals[84];\
 [[maybe_unused]] auto& _pp_var_out_n_CL             = pp->globals[85];\
 [[maybe_unused]] auto& _pp_var_out_n_K              = pp->globals[86];\
-                          \
 [[maybe_unused]] auto* _pp_var_neck1_V         = pp->state_vars[0];\
 [[maybe_unused]] auto* _pp_var_neck1_n_CA      = pp->state_vars[1];\
 [[maybe_unused]] auto* _pp_var_neck1_n_CL      = pp->state_vars[2];\
@@ -147,12 +144,9 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 //End of IFACEBLOCK
 
 // interface methods
-    static void init(arb_mechanism_ppack*) {
-        //the default values should be correct
-    }
-
+    static void init(arb_mechanism_ppack*) {}
     static void compute_currents(arb_mechanism_ppack* pp) {
-        PPACK_IFACE_BLOCK;
+        PPACK_IFACE_BLOCK
         for(arb_size_type i = 0; i < _pp_var_gap_junction_width; i++){
             const arb_size_type cv1 = _pp_var_gap_junctions[i].loc.first;
             const arb_size_type cv2 = _pp_var_gap_junctions[i].loc.first;
@@ -320,7 +314,6 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
             _pp_var_vec_i[cv2] +=  fma( _pp_var_weight[cv2] , I_inward_dend2, _pp_var_vec_i[cv1]); //[A] -> [A/m2]
         }
     }
-
     static void advance_state(arb_mechanism_ppack*) {}
     static void write_ions(arb_mechanism_ppack*) {}
     static void apply_events(arb_mechanism_ppack*) {}

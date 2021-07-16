@@ -1,11 +1,6 @@
 #this actually adds the custom Catalogue
 
 #Local_catalogue
-file(GLOB Local_catalogue
-        "IOU_Mechs/*.cpp"
-        "IOU_catalogue.cpp"
-    )
-
 if(ARB_WITH_GPU)
     message(STATUS "custom mechs reports is has a GPU backend")
     file(GLOB Local_catalogue
