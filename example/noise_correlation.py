@@ -48,13 +48,16 @@ class ring_recipe (arbor.recipe):
 
     def num_cells(self): return self.ncells
     def cell_description(self, gid): return make_cable_cell(gid)
-    def cell_kind(self, gid): return arbor.cell_kind.cable
+    def cell_kind(self, gid):
+        return arbor.cell_kind.cable
     def connections_on(self, gid): return []
     def num_gap_junction_sites(self, gid): return self.ncells-1
     def event_generators(self, gid): return []
     def probes(self, gid): return [arbor.cable_probe_membrane_voltage('"root"')]
     def global_properties(self, kind): return self.props
-    def gap_junction_mech(self): return arbor.mechanism('linear_gapJunction')
+    def gap_junction_mech(self):
+        print("this function mech is used")
+        return arbor.mechanism('linear_gapJunction')
     def gap_junctions_on(self, gid):
         conns = []
         for i in range(self.ncells):
@@ -62,7 +65,6 @@ class ring_recipe (arbor.recipe):
             conn = arbor.gap_junction_connection(local='a', peer=(i, 'a'), ggap=0.0)
             conns.append(conn)
         return conns
-
 
 
 ncells = 128

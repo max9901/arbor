@@ -141,7 +141,7 @@ public:
     }
 
     [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
-        return arb::mechanism_desc("linear_gapJunction");
+        return arb::mechanism_desc("glomerulus");
     }
 
 private:

@@ -136,6 +136,10 @@ public:
         return try_catch_pyexception([&](){ return impl_->probes(gid); }, msg);
     }
 
+    arb::mechanism_desc gap_junction_mech() const override {
+        return try_catch_pyexception([&](){ return impl_->gap_junction_mech(); }, msg);
+    }
+
     std::any get_global_properties(arb::cell_kind kind) const override;
 };
 

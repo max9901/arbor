@@ -1,7 +1,7 @@
 //
 // Created by max on 09-07-21.
 //
-//#include "iostream" //debugging
+#include "iostream" //debugging
 //#define S(x) std::cout << #x << "\t\t" << x << std::endl;
 
 #include <arbor/arb_types.h>
@@ -144,7 +144,9 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 //End of IFACEBLOCK
 
 // interface methods
-    static void init(arb_mechanism_ppack*) {}
+    static void init(arb_mechanism_ppack*) {
+        std::cout << "init glomerulus" <<std::endl;
+    }
     static void compute_currents(arb_mechanism_ppack* pp) {
         PPACK_IFACE_BLOCK
         for(arb_size_type i = 0; i < _pp_var_gap_junction_width; i++){
@@ -258,7 +260,7 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
             const arb_value_type x99 = _pp_var_head2_kf*_pp_var_head2_n_B[i]*_pp_var_head2_n_CA[i];
             const arb_value_type x100 = _pp_var_head2_kb*(_pp_var_head2_nTB - _pp_var_head2_n_B[i]);
             const arb_value_type x101 = pow(_pp_var_head2_ca_presyn[i], 2);
-            
+
             const arb_value_type grad_neck1_V            = x0*x36*(x18 + x29 + x35)/_pp_var_neck1_diam;
             const arb_value_type grad_neck1_n_CL         = -x38*x39*(x17 + x29);
             const arb_value_type grad_neck1_n_CA         = x39*x40*(x13 + x35);
@@ -309,10 +311,10 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 
              //write current attributions
             const arb_value_type I_inward_dend1 = x18; //[A]
-            const arb_value_type I_inward_dend2 = x79; //[A]
+//            const arb_value_type I_inward_dend2 = x79; //[A]
 
-            _pp_var_vec_i[cv1] +=  fma( _pp_var_weight[cv1] , I_inward_dend1, _pp_var_vec_i[cv1]); //[A] -> [A/m2]
-            _pp_var_vec_i[cv2] +=  fma( _pp_var_weight[cv2] , I_inward_dend2, _pp_var_vec_i[cv1]); //[A] -> [A/m2]
+            _pp_var_vec_i[cv1] +=  fma( _pp_var_gap_junctions[i].weight , I_inward_dend1, _pp_var_vec_i[cv1]); //[A] -> [A/m2]
+//            _pp_var_vec_i[cv2] +=  fma( _pp_var_gap_junctions[i].weight , I_inward_dend2, _pp_var_vec_i[cv2]); //[A] -> [A/m2] This can not be used right now..
         }
     }
     static void advance_state(arb_mechanism_ppack*) {}

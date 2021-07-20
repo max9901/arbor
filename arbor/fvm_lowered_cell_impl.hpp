@@ -537,13 +537,13 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
         auto gapmech = rec.gap_junction_mech();
         auto name = gapmech.name();
         auto minst = mech_instance(name);
+        const auto temp = minst.mech.get();
+        if( temp->kind() != arb_mechanism_kind_gap_junction){
+            std::cout << "error at gap junctions\n";
+            throw arbor_internal_error("not a gap juntion mechanism in the gap_junction_mech receip call");
+        }
 
-        //TODO TODO TODO
         mechanism_layout layout;
-        layout.cv = {};
-        layout.multiplicity = {};
-        layout.weight.resize(layout.cv.size());
-
         state_->instantiate(*minst.mech, mech_id++, minst.overrides, layout);
         mechptr_by_name[name] = minst.mech.get();
         mechanisms_.push_back(mechanism_ptr(minst.mech.release()));

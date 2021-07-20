@@ -426,19 +426,21 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Set internal variables
 
     m.num_ions_      = m.mech_.n_ions;
-
-    //Choose to go the gap junction way or the mechanism_layout way:
-    if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
-        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);      // Extend width to account for requisite SIMD padding.
-    }else{
-        m.width_padded_ = math::round_up(gap_junctions.size(), alignment);    // give the amount of gap junctions as option
-    }
-
     m.time_ptr_ptr   = &time_ptr;
 
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
-    m.ppack_.width              = pos_data.cv.size();
+
+
+    //Choose to go the gap junction way or the mechanism_layout way:
+    if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
+        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);      // Extend width to account for requisite SIMD padding.
+        m.ppack_.width              = pos_data.cv.size();
+    }else{
+        m.width_padded_ = math::round_up(gap_junctions.size(), alignment);    // give the amount of gap junctions as option
+        m.ppack_.width              = gap_junctions.size();
+    }
+
     m.ppack_.mechanism_id       = id;
     m.ppack_.vec_ci             = cv_to_cell.data();
     m.ppack_.vec_di             = cv_to_intdom.data();
@@ -531,7 +533,10 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         store.indices_ = iarray(count*m.width_padded_, 0, pad);
         auto base_ptr  = store.indices_.data();
         // Setup node indices
-        append_chunk(pos_data.cv, m.ppack_.node_index, pos_data.cv.back(), base_ptr);
+        if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
+            append_chunk(pos_data.cv, m.ppack_.node_index, pos_data.cv.back(), base_ptr);
+        }
+
         auto node_index = util::range_n(m.ppack_.node_index, m.width_padded_);
         // Make SIMD index constraints and set the view
         store.constraints_ = make_constraint_partition(node_index, m.ppack_.width, m.iface_.partition_width);
