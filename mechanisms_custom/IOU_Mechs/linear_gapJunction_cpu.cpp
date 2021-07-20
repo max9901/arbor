@@ -31,8 +31,10 @@ namespace arb::IOU_catalogue::kernel_linear_gapJunction {
 [[maybe_unused]] auto& _pp_var_events            = pp->events;\
 [[maybe_unused]] auto& _pp_var_mechanism_id      = pp->mechanism_id;\
 [[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
-[[maybe_unused]] auto* _pp_var_gap_junctions = pp->gap_junctions; \
-[[maybe_unused]] auto _pp_var_gap_junction_width = pp->gap_junction_width; \
+[[maybe_unused]] auto* _pp_var_gap_junctions     = pp->gap_junctions; \
+[[maybe_unused]] auto _pp_var_gap_junction_width = pp->gap_junction_width;\
+                          \
+[[maybe_unused]] auto* _pp_var_head2_ca_presyn      = pp->state_vars[0];\
 //End of IFACEBLOCK
 
 // interface methods

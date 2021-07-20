@@ -54,7 +54,8 @@ public:
     }
 
     [[nodiscard]] arb::cell_kind get_cell_kind(arb::cell_gid_type gid) const override {
-        return arb::cell_kind::cable;
+       
+	    return arb::cell_kind::cable;
     }
 
     [[nodiscard]] std::any get_global_properties(arb::cell_kind k) const override {
@@ -141,7 +142,7 @@ public:
     }
 
     [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
-        return arb::mechanism_desc("glomerulus");
+        return arb::mechanism_desc("linear_gapJunction");
     }
 
 private:

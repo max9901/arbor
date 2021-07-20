@@ -544,6 +544,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
         }
 
         mechanism_layout layout;
+
         state_->instantiate(*minst.mech, mech_id++, minst.overrides, layout);
         mechptr_by_name[name] = minst.mech.get();
         mechanisms_.push_back(mechanism_ptr(minst.mech.release()));

@@ -57,7 +57,7 @@ class ring_recipe (arbor.recipe):
     def global_properties(self, kind): return self.props
     def gap_junction_mech(self):
         print("this function mech is used")
-        return arbor.mechanism('linear_gapJunction')
+        return arbor.mechanism('glomerulus')
     def gap_junctions_on(self, gid):
         conns = []
         for i in range(self.ncells):
