@@ -42,6 +42,9 @@ public:
     virtual std::vector<arb::gap_junction_connection> gap_junctions_on(arb::cell_gid_type) const {
         return {};
     }
+    virtual arb::mechanism_desc gap_junction_mech() const {
+        return arb::mechanism_desc("linear_gapJunction");
+    }
     virtual std::vector<arb::probe_info> probes(arb::cell_gid_type gid) const {
         return {};
     }
@@ -75,6 +78,10 @@ public:
 
     std::vector<arb::gap_junction_connection> gap_junctions_on(arb::cell_gid_type gid) const override {
         PYBIND11_OVERLOAD(std::vector<arb::gap_junction_connection>, py_recipe, gap_junctions_on, gid);
+    }
+
+    arb::mechanism_desc gap_junction_mech() const override {
+        PYBIND11_OVERLOAD(arb::mechanism_desc,py_recipe,gap_junction_mech);
     }
 
     std::vector<arb::probe_info> probes(arb::cell_gid_type gid) const override {

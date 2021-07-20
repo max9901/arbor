@@ -253,7 +253,8 @@ fvm_integration_result fvm_lowered_cell_impl<Backend>::integrate(
         }
 
         // Add current contribution from gap_junctions
-        state_->add_gj_current();
+        //TODO hit on gap junctions
+//        state_->add_gj_current();
 
         PE(advance_integrate_events);
         state_->deliverable_events.drop_marked_events();
@@ -472,7 +473,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     // Discretize mechanism data.
     fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells, D, context_);
 
-
     /// als we deze nu eens doormappen naar de shared state en pointer packs of mechanismes. ?
     // Discretize and build gap junction info.
     auto gj_vector = fvm_gap_junctions(cells, gids, fvm_info.gap_junction_data, rec, D);
@@ -529,8 +529,26 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
 
     // Keep track of mechanisms by name for probe lookup.
     std::unordered_map<std::string, mechanism*> mechptr_by_name;
-
     unsigned mech_id = 0;
+
+    //get the gapjunction mech
+    //TODO TODO TODO check if gap mech is valid...
+    {
+        auto gapmech = rec.gap_junction_mech();
+        auto name = gapmech.name();
+        auto minst = mech_instance(name);
+
+        //TODO TODO TODO
+        mechanism_layout layout;
+        layout.cv = {};
+        layout.multiplicity = {};
+        layout.weight.resize(layout.cv.size());
+
+        state_->instantiate(*minst.mech, mech_id++, minst.overrides, layout);
+        mechptr_by_name[name] = minst.mech.get();
+        mechanisms_.push_back(mechanism_ptr(minst.mech.release()));
+    }
+
     for (auto& m: mech_data.mechanisms) {
         auto& name = m.first;
         auto& config = m.second;
@@ -575,6 +593,9 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
             break;
         case arb_mechanism_kind_gap_junction:
             // Current density contributions from mechanism are already in [A/m²].
+            //Trow error ! should not be in here
+            std::cout << "ERROR should not be in here :)\n";
+            exit(0);
             for (auto i: count_along(layout.cv)) {
                 layout.weight[i] = config.norm_area[i];
             }
@@ -586,7 +607,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
         }
 
         auto minst = mech_instance(name);
-
         state_->instantiate(*minst.mech, mech_id++, minst.overrides, layout);
         mechptr_by_name[name] = minst.mech.get();
 

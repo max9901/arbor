@@ -1,6 +1,5 @@
 #include <arbor/mechcat.hpp>
 #include <arbor/mechanism.hpp>
-#include <arbor/mechanism_abi.h>
 
 #include "IOU_Mechs/ou_noise.hpp"
 #include "IOU_Mechs/glomerulus.hpp"
@@ -41,6 +40,7 @@ const mechanism_catalogue& global_IOU_catalogue() {
 }
 
 } // namespace arb
+
 #ifdef STANDALONE
 extern "C" {
     [[gnu::visibility("default")]] const void* get_catalogue() {

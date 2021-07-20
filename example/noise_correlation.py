@@ -54,6 +54,7 @@ class ring_recipe (arbor.recipe):
     def event_generators(self, gid): return []
     def probes(self, gid): return [arbor.cable_probe_membrane_voltage('"root"')]
     def global_properties(self, kind): return self.props
+    def gap_junction_mech(self): return arbor.mechanism('linear_gapJunction')
     def gap_junctions_on(self, gid):
         conns = []
         for i in range(self.ncells):

@@ -31,7 +31,6 @@ namespace arb::IOU_catalogue::kernel_linear_gapJunction {
 [[maybe_unused]] auto& _pp_var_events            = pp->events;\
 [[maybe_unused]] auto& _pp_var_mechanism_id      = pp->mechanism_id;\
 [[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
-                          \
 [[maybe_unused]] auto* _pp_var_gap_junctions = pp->gap_junctions; \
 [[maybe_unused]] auto _pp_var_gap_junction_width = pp->gap_junction_width; \
 //End of IFACEBLOCK
@@ -46,7 +45,7 @@ namespace arb::IOU_catalogue::kernel_linear_gapJunction {
         for (unsigned i = 0; i < _pp_var_gap_junction_width; i++) {
             auto gj = _pp_var_gap_junctions[i];
             auto curr = gj.weight * (_pp_var_vec_v[gj.loc.second] - _pp_var_vec_v[gj.loc.first]); // nA
-            _pp_var_vec_i[gj.loc.first] -= curr; //no need for weiht right now todo is change the way it handles weights put them in the weight vector.
+            _pp_var_vec_i[gj.loc.first] -= curr;      //no need for weiht right now todo is change the way it handles weights put them in the weight vector. fixed in gj.weight
         }
     }
 

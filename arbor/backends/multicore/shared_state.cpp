@@ -326,9 +326,7 @@ void shared_state::add_gj_current() {
     for (unsigned i = 0; i < n_gj; i++) {
         auto gj = gap_junctions[i];
         auto curr = gj.weight * (voltage[gj.loc.second] - voltage[gj.loc.first]); // nA
-
-        //TODO
-//        current_density[gj.loc.first] -= curr;
+        current_density[gj.loc.first] -= curr;
     }
 }
 
@@ -429,8 +427,9 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
 
     m.num_ions_      = m.mech_.n_ions;
 
+    //Choose to go the gap junction way or the mechanism_layout way:
     if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
-        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);         // Extend width to account for requisite SIMD padding.
+        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);      // Extend width to account for requisite SIMD padding.
     }else{
         m.width_padded_ = math::round_up(gap_junctions.size(), alignment);    // give the amount of gap junctions as option
     }
@@ -439,19 +438,19 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
 
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
-    m.ppack_.width = pos_data.cv.size();
-    m.ppack_.mechanism_id     = id;
-    m.ppack_.vec_ci           = cv_to_cell.data();
-    m.ppack_.vec_di           = cv_to_intdom.data();
-    m.ppack_.vec_dt           = dt_cv.data();
-    m.ppack_.vec_v            = voltage.data();
-    m.ppack_.vec_i            = current_density.data();
-    m.ppack_.vec_g            = conductivity.data();
-    m.ppack_.temperature_degC = temperature_degC.data();
-    m.ppack_.diam_um          = diam_um.data();
-    m.ppack_.time_since_spike = time_since_spike.data();
-    m.ppack_.n_detectors      = n_detector;
-    m.ppack_.events           = {};
+    m.ppack_.width              = pos_data.cv.size();
+    m.ppack_.mechanism_id       = id;
+    m.ppack_.vec_ci             = cv_to_cell.data();
+    m.ppack_.vec_di             = cv_to_intdom.data();
+    m.ppack_.vec_dt             = dt_cv.data();
+    m.ppack_.vec_v              = voltage.data();
+    m.ppack_.vec_i              = current_density.data();
+    m.ppack_.vec_g              = conductivity.data();
+    m.ppack_.temperature_degC   = temperature_degC.data();
+    m.ppack_.diam_um            = diam_um.data();
+    m.ppack_.time_since_spike   = time_since_spike.data();
+    m.ppack_.n_detectors        = n_detector;
+    m.ppack_.events             = {};
     m.ppack_.vec_t              = nullptr;
     m.ppack_.gap_junctions      = gap_junctions.data();
     m.ppack_.gap_junction_width = n_gj;
@@ -490,8 +489,6 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         ptr += n;
     };
 
-
-    //HIT HHIT HIT HIT HIER MOETEN WE HET FIXEN VOOR ANDERE SOORT MECHANISME
     // Initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage
@@ -499,7 +496,7 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         store.data_ = array(count, NAN, pad);
         auto base_ptr = store.data_.data();
         // First sub-array of data_ is used for weight_
-        append_chunk(pos_data.weight, m.ppack_.weight, 0, base_ptr);
+        append_chunk(pos_data.weight, m.ppack_.weight, 0, base_ptr);    //the weight vector is empty for a gap junction mechanism
         // Set fields
         for (auto idx: make_span(m.mech_.n_parameters)) {
             append_const(m.mech_.parameters[idx].default_value, m.ppack_.parameters[idx], base_ptr);

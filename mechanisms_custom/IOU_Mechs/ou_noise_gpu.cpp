@@ -19,12 +19,12 @@ arb_mechanism_interface* make_arb_IOU_catalogue_ou_noise_interface_gpu() {
     static arb_mechanism_interface result;
     result.backend=arb_backend_kind_gpu;
     result.alignment=1;
-    result.init_mechanism  =(arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_init_;
-    result.compute_currents=(arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_compute_currents_;
-    result.apply_events    =(arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_apply_events_;
-    result.advance_state   =(arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_advance_state_;
-    result.write_ions      =(arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_write_ions_;
-    result.post_event      =(arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_post_event_;
+    result.init_mechanism   = (arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_init_;
+    result.compute_currents = (arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_compute_currents_;
+    result.apply_events     = (arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_apply_events_;
+    result.advance_state    = (arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_advance_state_;
+    result.write_ions       = (arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_write_ions_;
+    result.post_event       = (arb_mechanism_method)arb::IOU_catalogue::mechanism_ou_noise_gpu_post_event_;
     return &result;
 }
 };

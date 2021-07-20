@@ -7,6 +7,7 @@
 #include <arbor/common_types.hpp>
 #include <arbor/event_generator.hpp>
 #include <arbor/util/unique_any.hpp>
+#include <arbor/cable_cell_param.hpp>
 
 namespace arb {
 
@@ -74,8 +75,13 @@ public:
     virtual std::vector<cell_connection> connections_on(cell_gid_type) const {
         return {};
     }
+
     virtual std::vector<gap_junction_connection> gap_junctions_on(cell_gid_type) const {
         return {};
+    }
+
+    virtual arb::mechanism_desc gap_junction_mech() const {
+        return arb::mechanism_desc("linear_gapJunction");
     }
 
     virtual std::vector<probe_info> get_probes(cell_gid_type gid) const {

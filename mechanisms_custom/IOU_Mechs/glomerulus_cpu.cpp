@@ -12,26 +12,26 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
     static constexpr unsigned simd_width_ = 0;
 
 #define PPACK_IFACE_BLOCK \
-[[maybe_unused]] auto  _pp_var_width             = pp->width;\
-[[maybe_unused]] auto  _pp_var_n_detectors       = pp->n_detectors;\
-[[maybe_unused]] auto* _pp_var_vec_ci            = pp->vec_ci;\
-[[maybe_unused]] auto* _pp_var_vec_di            = pp->vec_di;\
-[[maybe_unused]] auto* _pp_var_vec_t             = pp->vec_t;\
-[[maybe_unused]] auto* _pp_var_vec_dt            = pp->vec_dt;\
-[[maybe_unused]] auto* _pp_var_vec_v             = pp->vec_v;\
-[[maybe_unused]] auto* _pp_var_vec_i             = pp->vec_i;\
-[[maybe_unused]] auto* _pp_var_vec_g             = pp->vec_g;\
-[[maybe_unused]] auto* _pp_var_temperature_degC  = pp->temperature_degC;\
-[[maybe_unused]] auto* _pp_var_diam_um           = pp->diam_um;\
-[[maybe_unused]] auto* _pp_var_time_since_spike  = pp->time_since_spike;\
-[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index;\
-[[maybe_unused]] auto* _pp_var_multiplicity      = pp->multiplicity;\
-[[maybe_unused]] auto* _pp_var_weight            = pp->weight;\
-[[maybe_unused]] auto& _pp_var_events            = pp->events;\
-[[maybe_unused]] auto& _pp_var_mechanism_id      = pp->mechanism_id;\
-[[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
-[[maybe_unused]] auto* _pp_var_gap_junctions     = pp->gap_junctions; \
-[[maybe_unused]] auto _pp_var_gap_junction_width = pp->gap_junction_width;\
+[[maybe_unused]] auto  _pp_var_width                = pp->width;\
+[[maybe_unused]] auto  _pp_var_n_detectors          = pp->n_detectors;\
+[[maybe_unused]] auto* _pp_var_vec_ci               = pp->vec_ci;\
+[[maybe_unused]] auto* _pp_var_vec_di               = pp->vec_di;\
+[[maybe_unused]] auto* _pp_var_vec_t                = pp->vec_t;\
+[[maybe_unused]] auto* _pp_var_vec_dt               = pp->vec_dt;\
+[[maybe_unused]] auto* _pp_var_vec_v                = pp->vec_v;\
+[[maybe_unused]] auto* _pp_var_vec_i                = pp->vec_i;\
+[[maybe_unused]] auto* _pp_var_vec_g                = pp->vec_g;\
+[[maybe_unused]] auto* _pp_var_temperature_degC     = pp->temperature_degC;\
+[[maybe_unused]] auto* _pp_var_diam_um              = pp->diam_um;\
+[[maybe_unused]] auto* _pp_var_time_since_spike     = pp->time_since_spike;\
+[[maybe_unused]] auto* _pp_var_node_index           = pp->node_index;\
+[[maybe_unused]] auto* _pp_var_multiplicity         = pp->multiplicity;\
+[[maybe_unused]] auto* _pp_var_weight               = pp->weight;\
+[[maybe_unused]] auto& _pp_var_events               = pp->events;\
+[[maybe_unused]] auto& _pp_var_mechanism_id         = pp->mechanism_id;\
+[[maybe_unused]] auto& _pp_var_index_constraints    = pp->index_constraints; \
+[[maybe_unused]] auto* _pp_var_gap_junctions        = pp->gap_junctions; \
+[[maybe_unused]] auto _pp_var_gap_junction_width    = pp->gap_junction_width;\
 [[maybe_unused]] auto& _pp_var_Cm                   = pp->globals[0];\
 [[maybe_unused]] auto& _pp_var_D_CA                 = pp->globals[1];\
 [[maybe_unused]] auto& _pp_var_D_CL                 = pp->globals[2];\
@@ -119,28 +119,28 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 [[maybe_unused]] auto& _pp_var_out_n_CA             = pp->globals[84];\
 [[maybe_unused]] auto& _pp_var_out_n_CL             = pp->globals[85];\
 [[maybe_unused]] auto& _pp_var_out_n_K              = pp->globals[86];\
-[[maybe_unused]] auto* _pp_var_neck1_V         = pp->state_vars[0];\
-[[maybe_unused]] auto* _pp_var_neck1_n_CA      = pp->state_vars[1];\
-[[maybe_unused]] auto* _pp_var_neck1_n_CL      = pp->state_vars[2];\
-[[maybe_unused]] auto* _pp_var_head1_V         = pp->state_vars[3];\
-[[maybe_unused]] auto* _pp_var_head1_n_CL      = pp->state_vars[4];\
-[[maybe_unused]] auto* _pp_var_head1_n_CA      = pp->state_vars[5];\
-[[maybe_unused]] auto* _pp_var_head1_n_B       = pp->state_vars[6];\
-[[maybe_unused]] auto* _pp_var_head1_X         = pp->state_vars[7];\
-[[maybe_unused]] auto* _pp_var_head1_Y         = pp->state_vars[8];\
-[[maybe_unused]] auto* _pp_var_head1_ggaba     = pp->state_vars[9];\
-[[maybe_unused]] auto* _pp_var_head1_ca_presyn = pp->state_vars[10];\
-[[maybe_unused]] auto* _pp_var_neck2_V         = pp->state_vars[11];\
-[[maybe_unused]] auto* _pp_var_neck2_n_CA      = pp->state_vars[12];\
-[[maybe_unused]] auto* _pp_var_neck2_n_CL      = pp->state_vars[13];\
-[[maybe_unused]] auto* _pp_var_head2_V         = pp->state_vars[14];\
-[[maybe_unused]] auto* _pp_var_head2_n_CL      = pp->state_vars[15];\
-[[maybe_unused]] auto* _pp_var_head2_n_CA      = pp->state_vars[16];\
-[[maybe_unused]] auto* _pp_var_head2_n_B       = pp->state_vars[17];\
-[[maybe_unused]] auto* _pp_var_head2_X         = pp->state_vars[18];\
-[[maybe_unused]] auto* _pp_var_head2_Y         = pp->state_vars[19];\
-[[maybe_unused]] auto* _pp_var_head2_ggaba     = pp->state_vars[20];\
-[[maybe_unused]] auto* _pp_var_head2_ca_presyn = pp->state_vars[21];\
+[[maybe_unused]] auto* _pp_var_neck1_V              = pp->state_vars[0];\
+[[maybe_unused]] auto* _pp_var_neck1_n_CA           = pp->state_vars[1];\
+[[maybe_unused]] auto* _pp_var_neck1_n_CL           = pp->state_vars[2];\
+[[maybe_unused]] auto* _pp_var_head1_V              = pp->state_vars[3];\
+[[maybe_unused]] auto* _pp_var_head1_n_CL           = pp->state_vars[4];\
+[[maybe_unused]] auto* _pp_var_head1_n_CA           = pp->state_vars[5];\
+[[maybe_unused]] auto* _pp_var_head1_n_B            = pp->state_vars[6];\
+[[maybe_unused]] auto* _pp_var_head1_X              = pp->state_vars[7];\
+[[maybe_unused]] auto* _pp_var_head1_Y              = pp->state_vars[8];\
+[[maybe_unused]] auto* _pp_var_head1_ggaba          = pp->state_vars[9];\
+[[maybe_unused]] auto* _pp_var_head1_ca_presyn      = pp->state_vars[10];\
+[[maybe_unused]] auto* _pp_var_neck2_V              = pp->state_vars[11];\
+[[maybe_unused]] auto* _pp_var_neck2_n_CA           = pp->state_vars[12];\
+[[maybe_unused]] auto* _pp_var_neck2_n_CL           = pp->state_vars[13];\
+[[maybe_unused]] auto* _pp_var_head2_V              = pp->state_vars[14];\
+[[maybe_unused]] auto* _pp_var_head2_n_CL           = pp->state_vars[15];\
+[[maybe_unused]] auto* _pp_var_head2_n_CA           = pp->state_vars[16];\
+[[maybe_unused]] auto* _pp_var_head2_n_B            = pp->state_vars[17];\
+[[maybe_unused]] auto* _pp_var_head2_X              = pp->state_vars[18];\
+[[maybe_unused]] auto* _pp_var_head2_Y              = pp->state_vars[19];\
+[[maybe_unused]] auto* _pp_var_head2_ggaba          = pp->state_vars[20];\
+[[maybe_unused]] auto* _pp_var_head2_ca_presyn      = pp->state_vars[21];\
 //End of IFACEBLOCK
 
 // interface methods
@@ -148,6 +148,7 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
     static void compute_currents(arb_mechanism_ppack* pp) {
         PPACK_IFACE_BLOCK
         for(arb_size_type i = 0; i < _pp_var_gap_junction_width; i++){
+
             const arb_size_type cv1 = _pp_var_gap_junctions[i].loc.first;
             const arb_size_type cv2 = _pp_var_gap_junctions[i].loc.first;
 

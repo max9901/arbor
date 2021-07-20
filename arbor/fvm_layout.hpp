@@ -221,7 +221,6 @@ fvm_voltage_interpolant fvm_axial_current(const cable_cell& cell, const fvm_cv_d
 
 
 // Post-discretization data for point and density mechanism instantiation.
-
 struct fvm_mechanism_config {
     using value_type = fvm_value_type;
     using index_type = fvm_index_type;

@@ -1,4 +1,4 @@
-#include <cstdlib>     /* abs */
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <nlohmann/json.hpp>
@@ -9,15 +9,14 @@
 #include <arbor/profile/meter_manager.hpp>
 #include <arbor/simple_sampler.hpp>
 #include <arbor/simulation.hpp>
+
 #include <arbor/recipe.hpp>
 #include <utility>
 #include <arborenv/concurrency.hpp>
 #include <arborio/label_parse.hpp>
 #include <sup/ioutil.hpp>
 
-#include <arborenv/gpu_env.hpp>
-
-
+//#include <arborenv/gpu_env.hpp>
 //#include "mechanisms/Local_catalogue.cpp"
 //#include <arbor/assert_macro.hpp>
 //#include <arbor/cable_cell.hpp>
@@ -27,16 +26,16 @@
 //#include <sup/json_meter.hpp>
 //#include <sup/json_params.hpp>
 
+
 #ifdef ARB_MPI_ENABLED
 #include <mpi.h>
 #include <arborenv/with_mpi.hpp>
 #endif
 
-
 struct io_params {
     std::string name = "default";
-    double simtime = 1;   //ms
-    double timestep = 0.025;  //ms
+    double simtime   = 1;       //ms
+    double timestep  = 0.025;  //ms
     unsigned n_cells = 3;
 };
 
@@ -141,6 +140,10 @@ public:
         return conns;
     }
 
+    [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
+        return arb::mechanism_desc("linear_gapJunction");
+    }
+
 private:
     io_params params_;
     const arb::mechanism_catalogue* catalogue_;
@@ -173,9 +176,9 @@ int main() {
 
     // Print a banner with information about hardware configuration
     std::cout << "gpu:      " << (has_gpu(context)? "yes": "no") << "\n";
-    std::cout << "threads:  " << num_threads(context) << "\n";
+    std::cout << "threads:  " << num_threads(context)            << "\n";
     std::cout << "mpi:      " << (has_mpi(context)? "yes": "no") << "\n";
-    std::cout << "ranks:    " << num_ranks(context) << "\n" << std::endl;
+    std::cout << "ranks:    " << num_ranks(context) << "\n"      << std::endl;
 
     arb::profile::meter_manager meter;
     meter.start(context);
@@ -184,8 +187,7 @@ int main() {
 
     auto cat = (arb::mechanism_catalogue*)&arb::global_smol_catalogue();
     auto IOUCat = (arb::mechanism_catalogue*)&arb::global_IOU_catalogue();
-    cat->import(*IOUCat,"ns_");      //actually add the catalogue we are interested in.
-
+    cat->import(*IOUCat,"");      //actually add the catalogue we are interested in.
 
     // Create an instance of our recipe.
     IO_recipe recipe(params, cat);
@@ -198,7 +200,6 @@ int main() {
     // Construct the model.
     arb::simulation sim(recipe, decomp, context);
     meter.checkpoint("Create simmodel", context);
-
 
     // Set up the probe that will measure voltage in the cell.
     auto sched = arb::regular_schedule(0.025);
@@ -225,9 +226,7 @@ int main() {
     auto report = arb::profile::make_meter_report(meter, context);
     std::cout << report;
 
-
 //    std::cout << arb::profile::profiler_summary() << "\n";
-
     return 0;
 }
 
@@ -322,17 +321,8 @@ arb::cable_cell IO_cell(){
     leak["gmax"] = 1.3e-05;
     decor.paint("(all)"_reg, leak);
 
-    arb::mechanism_desc ou_noise("ns_ou_noise/seed=10");
+    arb::mechanism_desc ou_noise("ou_noise/seed=10");
     decor.paint("(all)"_reg, ou_noise);
-
-
-    //dit is komplete bs moet anders gefixt worden, aka in global properties of in on_connection :D
-//    arb::mechanism_desc ns_linear_gapJunction("ns_linear_gapJunction");
-//    decor.paint("(all)"_reg, ns_linear_gapJunction);
-
-//    arb::mechanism_desc glomerulus("ns_glomerulus");
-//    decor.paint("(all)"_reg, glomerulus);
-
 
     // Add a spike detector to the soma at the beginning
     //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});
