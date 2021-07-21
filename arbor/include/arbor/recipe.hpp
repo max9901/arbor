@@ -81,7 +81,7 @@ public:
     }
 
     virtual arb::mechanism_desc gap_junction_mech() const {
-        return arb::mechanism_desc("linear_gapJunction");
+        return arb::mechanism_desc("linear_gj");
     }
 
     virtual std::vector<probe_info> get_probes(cell_gid_type gid) const {

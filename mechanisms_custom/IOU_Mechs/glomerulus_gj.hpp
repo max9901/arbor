@@ -1,5 +1,6 @@
 //
 // Created by max on 08-07-21.
+//PLEASE NOTE IT IS ALL IN SI units
 //
 
 #pragma once
@@ -7,10 +8,8 @@
 #include <cmath>
 #include <arbor/mechanism_abi.h>
 
-//PLEASE NOTE IT IS ALL IN SI units
-
 extern "C" {
-  arb_mechanism_type make_arb_IOU_catalogue_glomerulus() {
+  arb_mechanism_type make_arb_IOU_catalogue_glomerulus_gj() {
     static arb_field_info globals[] = {{ "Cm"                   , "", 2e-6*1e4              , -1.7976931348623157e+308, 1.7976931348623157e+308 },
                                        { "D_CA"                 , "", 0.79e-9               , -1.7976931348623157e+308, 1.7976931348623157e+308 },
                                        { "D_CL"                 , "", 2.08e-9               , -1.7976931348623157e+308, 1.7976931348623157e+308 },
@@ -137,7 +136,7 @@ extern "C" {
     arb_mechanism_type result;
     result.abi_version=ARB_MECH_ABI_VERSION;
     result.fingerprint="<placeholder>";
-    result.name="glomerulus";
+    result.name="glomerulus_gj";
     result.kind=arb_mechanism_kind_gap_junction;
     result.is_linear=false;
     result.has_post_events=false;
@@ -151,7 +150,6 @@ extern "C" {
     result.n_parameters=n_parameters;
     return result;
   }
-
-  arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_interface_multicore();
-  arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_interface_gpu();
+  arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_gj_interface_multicore();
+  arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_gj_interface_gpu();
 }

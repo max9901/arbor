@@ -4,8 +4,6 @@
 
 #include <arbor/gpu/gpu_common.hpp>
 #include <arbor/mechanism_abi.h>
-#include <Random123/philox.h>
-#include <Random123/boxmuller.hpp>
 
 namespace arb {
     namespace IOU_catalogue {
@@ -29,16 +27,16 @@ namespace {
     }
 } // namespace
 
-void mechanism_linear_gapJunction_gpu_init_(arb_mechanism_ppack*) {}
-void mechanism_linear_gapJunction_gpu_compute_currents_(arb_mechanism_ppack* p) {
+void mechanism_linear_gj_gpu_init_(arb_mechanism_ppack*) {}
+void mechanism_linear_gj_gpu_compute_currents_(arb_mechanism_ppack* p) {
     unsigned block_dim = 128;
     unsigned grid_dim = ::arb::gpu::impl::block_count(p->gap_junction_width, block_dim);
     compute_currents<<<grid_dim, block_dim>>>(*p);
 }
-void mechanism_linear_gapJunction_gpu_advance_state_(arb_mechanism_ppack*) {}
-void mechanism_linear_gapJunction_gpu_write_ions_(arb_mechanism_ppack*) {}
-void mechanism_linear_gapJunction_gpu_post_event_(arb_mechanism_ppack*) {}
-void mechanism_linear_gapJunction_gpu_apply_events_(arb_mechanism_ppack*) {}
+void mechanism_linear_gj_gpu_advance_state_(arb_mechanism_ppack*) {}
+void mechanism_linear_gj_gpu_write_ions_(arb_mechanism_ppack*) {}
+void mechanism_linear_gj_gpu_post_event_(arb_mechanism_ppack*) {}
+void mechanism_linear_gj_gpu_apply_events_(arb_mechanism_ppack*) {}
 
 } // namespace IOU_catalogue
 } // namespace arb
