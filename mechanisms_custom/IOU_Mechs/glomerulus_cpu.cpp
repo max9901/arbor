@@ -1,8 +1,14 @@
 //
 // Created by max on 09-07-21.
 //
+
 #include "iostream" //debugging
-#define S(x) std::cout << #x << "\t\t" << x << std::endl;
+#define S(x) { \
+    if (x != x || x > 1e30 || x < -1e30) { \
+        std::cout << "ERROR:" #x << "\t=\t" << x << std::endl; \
+        exit(-1); \
+    } \
+}
 
 #include <arbor/arb_types.h>
 #include <arbor/mechanism_abi.h>
