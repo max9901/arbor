@@ -34,9 +34,9 @@
 
 struct io_params {
     std::string name = "default";
-    double simtime   = 1;       //ms
+    double simtime   = 10;       //ms
     double timestep  = 0.025;  //ms
-    unsigned n_cells = 3;
+    unsigned n_cells = 1;
 };
 
 arb::cable_cell IO_cell();
@@ -54,7 +54,6 @@ public:
     }
 
     [[nodiscard]] arb::cell_kind get_cell_kind(arb::cell_gid_type gid) const override {
-       
 	    return arb::cell_kind::cable;
     }
 
@@ -70,7 +69,7 @@ public:
 
     [[nodiscard]] std::vector<arb::probe_info> get_probes(arb::cell_gid_type gid) const override {
         // Measure membrane voltage at end of soma.
-        arb::mlocation loc{0, 1.};
+        arb::mlocation loc{4, 1.};
         return {arb::cable_probe_membrane_voltage{loc}};
     }
 
@@ -79,67 +78,67 @@ public:
 //        return {arb::cell_connection({gid - 1, 0}, 0, params_.event_weight, params_.event_min_delay)};
     }
 
-    [[nodiscard]] std::vector<arb::gap_junction_connection> gap_junctions_on(arb::cell_gid_type gid) const override{
-        using policy = arb::lid_selection_policy;
-        std::vector<arb::gap_junction_connection> conns;
-
-        if(gid !=0){
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_0", policy::assert_univalent},
-                                                         {"local_0", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-
-        }
-        else{
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_0", policy::assert_univalent},
-                                                         {"local_0", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-
-        }
-
-        if(gid != params_.n_cells-1){
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_0", policy::assert_univalent},
-                                                         {"local_0", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-        }
-        else{
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_0", policy::assert_univalent},
-                                                         {"local_0", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-
-            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
-                                                         {"local_2", policy::assert_univalent},
-                                                         0.015));
-        }
-        return conns;
-    }
+//    [[nodiscard]] std::vector<arb::gap_junction_connection> gap_junctions_on(arb::cell_gid_type gid) const override{
+//        using policy = arb::lid_selection_policy;
+//        std::vector<arb::gap_junction_connection> conns;
+//
+//        if(gid !=0){
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_0", policy::assert_univalent},
+//                                                         {"local_0", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//
+//        }
+//        else{
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_0", policy::assert_univalent},
+//                                                         {"local_0", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//
+//        }
+//
+//        if(gid != params_.n_cells-1){
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_0", policy::assert_univalent},
+//                                                         {"local_0", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//        }
+//        else{
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_0", policy::assert_univalent},
+//                                                         {"local_0", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//
+//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
+//                                                         {"local_2", policy::assert_univalent},
+//                                                         0.015));
+//        }
+//        return conns;
+//    }
 
     [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
         return arb::mechanism_desc("glomerulus_gj");
@@ -203,7 +202,7 @@ int main() {
     meter.checkpoint("Create simmodel", context);
 
     // Set up the probe that will measure voltage in the cell.
-    auto sched = arb::regular_schedule(0.025);
+    auto sched = arb::regular_schedule(1);
     std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells); // This is where the voltage samples will be stored as (time, value) pairs
     // Now attach the sampler to the soma.
     size_t j=0;
@@ -246,10 +245,11 @@ void write_trace_json(const std::vector<arb::trace_vector<double>>& traces, unsi
     for (const auto &sample: traces[cell].at(0)) {
         jt.push_back(sample.t);
         jy.push_back(sample.v);
+        std::cout <<std::setprecision(64)<< sample.t <<"\t" << sample.v <<"\n";
     }
 
     std::ofstream file(path);
-    file << std::setw(1) << json << "\n";
+    file << std::setw(1)  << json << "\n";
 }
 arb::cable_cell IO_cell(){
 
@@ -285,7 +285,6 @@ arb::cable_cell IO_cell(){
 
     //soma mechs
     arb::mechanism_desc na_s("na_s");
-    na_s["gmax"] = 0.040;
     decor.paint("soma"_lab, na_s);
 
     arb::mechanism_desc kdr("kdr");
@@ -298,17 +297,29 @@ arb::cable_cell IO_cell(){
     decor.paint("soma"_lab, cal);
 
     //dend mechs
-    arb::mechanism_desc cah("cah");
-    decor.paint("dend"_lab, cah);
 
-    arb::mechanism_desc kca("kca");
-    decor.paint("dend"_lab, kca);
+    arb::mechanism_desc smol_dend("smol_dend");
+    smol_dend["cah_gmax"]  = 0.010 * 1.7 / 2;
+    smol_dend["kca_gmax"]  = 0.200 * 0.7 * 1.5;
+    smol_dend["h_gmax"]    = 0.025 * 1.7;
+    smol_dend["cacc_gmax"] = 0.007;
+    decor.paint("dend"_lab, smol_dend);
 
-    arb::mechanism_desc h("h");
-    decor.paint("dend"_lab, h);
-
-    arb::mechanism_desc cacc("cacc");
-    decor.paint("dend"_lab, cacc);
+//    arb::mechanism_desc cah("cah");
+//    cah["gmax"] =0.010 * 1.7 / 2;
+//    decor.paint("dend"_lab, cah);
+//
+//    arb::mechanism_desc kca("kca");
+//    kca["gmax"] = 0.200 * 0.7 * 1.5;
+//    decor.paint("dend"_lab, kca);
+//
+//    arb::mechanism_desc h("h");
+//    h["gmax"] = 0.025 * 1.7;
+//    decor.paint("dend"_lab, h);
+//
+//    arb::mechanism_desc cacc("cacc");
+//    cacc["gmax"] = 0.007;
+//    decor.paint("dend"_lab, cacc);
 
     //axon mechs
     arb::mechanism_desc na_a("na_a");
@@ -318,12 +329,12 @@ arb::cable_cell IO_cell(){
     decor.paint("axon"_lab, k);
 
     //global mechs
-    arb::mechanism_desc leak("leak");
-    leak["gmax"] = 1.3e-05;
-    decor.paint("(all)"_reg, leak);
+//    arb::mechanism_desc leak("leak");
+//    leak["gmax"] = 1.3e-05;
+//    decor.paint("(all)"_reg, leak);
 
-    arb::mechanism_desc ou_noise("ou_noise/seed=10");
-    decor.paint("(all)"_reg, ou_noise);
+    //    arb::mechanism_desc ou_noise("ou_noise/seed=10");
+    //    decor.paint("(all)"_reg, ou_noise);
 
     // Add a spike detector to the soma at the beginning
     //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});

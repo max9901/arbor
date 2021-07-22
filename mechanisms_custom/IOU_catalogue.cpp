@@ -6,6 +6,7 @@
 #include "IOU_Mechs/linear_gj.hpp"
 #include "IOU_Mechs/cx36_gj.hpp"
 #include "IOU_Mechs/cx36k_gj.hpp"
+#include "IOU_Mechs/smol_dend.hpp"
 
 namespace arb {
 
@@ -42,6 +43,13 @@ mechanism_catalogue build_IOU_catalogue() {
     cat.register_implementation("glomerulus_gj", std::make_unique<mechanism>(make_arb_IOU_catalogue_glomerulus_gj(), *make_arb_IOU_catalogue_glomerulus_gj_interface_multicore()));
 #ifdef ARB_HAVE_GPU
     cat.register_implementation("glomerulus_gj", std::make_unique<mechanism>(make_arb_IOU_catalogue_glomerulus_gj(), *make_arb_IOU_catalogue_glomerulus_gj_interface_gpu()));
+#endif
+
+    //cpu/gpu done waiting on validation
+    cat.add("smol_dend", make_arb_IOU_catalogue_smol_dend());
+    cat.register_implementation("smol_dend", std::make_unique<mechanism>(make_arb_IOU_catalogue_smol_dend(), *make_arb_IOU_catalogue_smol_dend_interface_multicore()));
+#ifdef ARB_HAVE_GPU
+    cat.register_implementation("smol_dend", std::make_unique<mechanism>(make_arb_IOU_catalogue_smol_dend(), *make_arb_IOU_catalogue_smol_dend_interface_gpu()));
 #endif
 
     return cat;
