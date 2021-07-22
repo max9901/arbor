@@ -98,25 +98,29 @@ ASSIGNED {
     rate_l_q (/ms)
     rate_vstd (/ms)
     rate_gmax (/ms)
+    rate_k_q_lp (/ms)
 }
 STATE {
     k_q
     l_q
     gmax_actual
-    vmean
-    vstd
+    vmin
+    vmax
     timer
+    vamp
+    deltagmax
+    k_q_lp
 }
 INITIAL {
     eca = 120.0
     temperature = celsius + 273.15
     rates(v, )
     k_q = k_inf
+    k_q_lp = k_inf
     l_q = l_inf
     gmax_actual = gmax
-    vmean = v
-    vstd = 0.4
-    timer = 3
+    timer = 2
+    vamp = 0
 }
 BREAKPOINT {
     SOLVE states METHOD cnexp
@@ -130,25 +134,31 @@ BREAKPOINT {
     g = conductance  *  fopen ? evaluable
     gion = gmax_actual * fopen 
     ica = gion * (v - eca)
-    if (vstd>0.6) {
-        vstd = 0.6
+    if (v > vmax) {
+        vmax = v
     }
-    if (vstd<0.0) {
-        vstd = 0
+    if (v < vmin) {
+        vmin = v
     }
     if (timer < 0) {
         timer = 1
-        if (vstd < 0.4) {
-            gmax_actual = gmax_actual - 0.003
+        vamp = vmax - vmin
+        if (vamp < 12) {
+            if (k_q_lp > 0.77) {
+                gmax_actual = gmax_actual - 0.003
+            } else {
+                gmax_actual = gmax_actual + 0.003
+            }
         }
+        vmin = v
+        vmax = v
     }
 }
 DERIVATIVE states {
     rates(v, )
     k_q' = rate_k_q
+    k_q_lp' = rate_k_q_lp
     l_q' = rate_l_q
-    vmean' = 0.005*(v - vmean)
-    vstd' = 0.005*rate_vstd
     ?gmax_actual' = rate_gmax
     timer' = -0.003
 }
@@ -178,6 +188,9 @@ PROCEDURE rates(v, ) {
     l_tau = l_tauUnscaled  /  l_rateScale ? evaluable
     rate_k_q = ( k_inf  -  k_q ) /  k_tau ? Note units of all quantities used here need to be consistent!
     rate_l_q = ( l_inf  -  l_q ) /  l_tau ? Note units of all quantities used here need to be consistent!
-    rate_vstd = ((vmean - v)*(vmean-v))^0.5 - vstd
-    ?rate_gmax = -0.00001*(vstd-0.4) ? + (gmax-gmax_actual)? take into acount gate state
+    if (vamp < 3 && (vmax-vmin) < 3) {
+        rate_k_q_lp = 0.01*(k_q - k_q_lp)
+    } else {
+        rate_k_q_lp = 0
+    }
 }
