@@ -20,9 +20,8 @@ class recipe(arb.recipe):
         self.props.register(self.cat)
         print(list(self.cat))
         d = arb.decor()
-        #d.paint('(all)', arb.mechanism('adex', dict(I=1.5e-9)))
-        d.paint('(all)', arb.mechanism('adex'))
-        d.paint('(all)', cm=0)
+        d.paint('(all)', arb.mechanism('adex', dict(I=1.5e-9)))
+        d.paint('(all)', cm=1)
         d.set_property(Vm=-60)
         labels = arb.label_dict()
         labels['root'] = '(root)'
