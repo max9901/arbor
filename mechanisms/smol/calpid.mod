@@ -110,6 +110,7 @@ STATE {
     vamp
     deltagmax
     k_q_lp
+    dir
 }
 INITIAL {
     eca = 120.0
@@ -121,6 +122,7 @@ INITIAL {
     gmax_actual = gmax
     timer = 2
     vamp = 0
+    dir = 0
 }
 BREAKPOINT {
     SOLVE states METHOD cnexp
@@ -146,9 +148,14 @@ BREAKPOINT {
         if (vamp < 12) {
             if (k_q_lp > 0.77) {
                 gmax_actual = gmax_actual - 0.003
+                dir = - 0.003
             } else {
                 gmax_actual = gmax_actual + 0.003
+                dir =   0.003
             }
+        }
+        if (vamp > 15 && vmax < 0) {
+            gmax_actual = gmax_actual - 0.001
         }
         vmin = v
         vmax = v
