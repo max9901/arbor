@@ -36,7 +36,7 @@ make_catalogue(
   NAME smol
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/smol"
   OUTPUT "CAT_SMOL_SOURCES"
-  MECHS ca_conc cacc cah cal h k kca kdr leak na_a na_s
+  MECHS ca_conc cacc cah cal h k kca kdr leak na_a na_s calpid
   PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"
   CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
   STANDALONE FALSE

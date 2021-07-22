@@ -3,11 +3,9 @@
 //
 
 #include "iostream" //debugging
-#include <arbor/fvm_types.hpp>
 #include <arbor/mechanism_abi.h>
-#include <cmath>
 
-namespace arb::IOU_catalogue::kernel_linear_gapJunction {
+namespace arb::IOU_catalogue::kernel_linear_gj {
     static constexpr unsigned simd_width_ = 0;
 
 #define S(x) std::cout << #x << "\t\t" << x << std::endl;
@@ -33,13 +31,11 @@ namespace arb::IOU_catalogue::kernel_linear_gapJunction {
 [[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
 [[maybe_unused]] auto* _pp_var_gap_junctions     = pp->gap_junctions; \
 [[maybe_unused]] auto _pp_var_gap_junction_width = pp->gap_junction_width;\
-                          \
-[[maybe_unused]] auto* _pp_var_head2_ca_presyn      = pp->state_vars[0];\
 //End of IFACEBLOCK
 
 // interface methods
     static void init(arb_mechanism_ppack* pp) {
-        std::cout << "init linear_gapJunction "<< std::endl;
+        std::cout << "init linear_gj "<< std::endl;
     }
 
     static void compute_currents(arb_mechanism_ppack* pp) {
@@ -60,16 +56,16 @@ namespace arb::IOU_catalogue::kernel_linear_gapJunction {
 }
 
 extern "C" {
-arb_mechanism_interface* make_arb_IOU_catalogue_linear_gapJunction_interface_multicore() {
+arb_mechanism_interface* make_arb_IOU_catalogue_linear_gj_interface_multicore() {
     static arb_mechanism_interface result;
-    result.partition_width = arb::IOU_catalogue::kernel_linear_gapJunction::simd_width_;
+    result.partition_width = arb::IOU_catalogue::kernel_linear_gj::simd_width_;
     result.backend=arb_backend_kind_cpu;
     result.alignment=1;
-    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::init;
-    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::compute_currents;
-    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::apply_events;
-    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::advance_state;
-    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::write_ions;
-    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gapJunction::post_event;
+    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::init;
+    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::compute_currents;
+    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::apply_events;
+    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::advance_state;
+    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::write_ions;
+    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::post_event;
     return &result;
 }}

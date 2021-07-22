@@ -85,3 +85,6 @@ dist
 # generated image files by Python examples
 python/example/*.svg
 
+
+.ccls-cache/
+

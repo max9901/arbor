@@ -2,19 +2,32 @@
 // Created by max on 09-07-21.
 //
 
-#include "iostream" //debugging
-#define S(x) { \
-    if (x != x || x > 1e30 || x < -1e30) { \
-        std::cout << "ERROR:" #x << "\t=\t" << x << std::endl; \
-        exit(-1); \
-    } \
-}
+//*
+//* <<debugging>>
+//* <<=========>> **
+#define DEBUG_glomerulus
+#include "iostream"
+int iteration = 0;
+#define S(x) std::cout << "[" << iteration << "/" << i << "] " << #x << "\t\t" << x << std::endl;
+#define G(x) {if (x != x || x > 1e100 || x < -1e100)  {                                           \
+              std::cout << "DIVERGENCE " << #x << " = " << x << std::endl;                        \
+              S(_pp_var_neck1_V[i])      S(_pp_var_neck1_n_CL[i])      S(_pp_var_neck1_n_CA[i])   \
+              S(_pp_var_head1_V[i])      S(_pp_var_head1_n_CL[i])      S(_pp_var_head1_n_CA[i])   \
+              S(_pp_var_head1_n_B[i])    S(_pp_var_head1_Y[i])         S(_pp_var_head1_X[i])      \
+              S(_pp_var_head1_ggaba[i])  S(_pp_var_head1_ca_presyn[i]) S(_pp_var_neck2_V[i])      \
+              S(_pp_var_neck2_n_CL[i])   S(_pp_var_neck2_n_CA[i])      S(_pp_var_head2_V[i])      \
+              S(_pp_var_head2_n_CL[i])   S(_pp_var_head2_n_CA[i])      S(_pp_var_head2_n_B[i])    \
+              S(_pp_var_head2_Y[i])      S(_pp_var_head2_X[i])         S(_pp_var_head2_ggaba[i])  \
+              S(_pp_var_head2_ca_presyn[i]) exit(-1);}}                                           \
+//* <<=========>> **
+//*
+//*
 
 #include <arbor/arb_types.h>
 #include <arbor/mechanism_abi.h>
 #include <cmath>
 
-namespace arb::IOU_catalogue::kernel_glomerulus {
+namespace arb::IOU_catalogue::kernel_glomerulus_gj {
     static constexpr unsigned simd_width_ = 0;
 
 #define PPACK_IFACE_BLOCK \
@@ -153,6 +166,7 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
     static void init(arb_mechanism_ppack* pp) {
         std::cout << "init glomerulus" <<std::endl;
     }
+
     static void compute_currents(arb_mechanism_ppack* pp) {
         PPACK_IFACE_BLOCK
         for(arb_size_type i = 0; i < _pp_var_gap_junction_width; i++){
@@ -267,21 +281,6 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
             const arb_value_type x100 = _pp_var_head2_kb*(_pp_var_head2_nTB - _pp_var_head2_n_B[i]);
             const arb_value_type x101 = pow(_pp_var_head2_ca_presyn[i], 2);
 
-            std::cout << std::endl;
-            std::cout << dt  << std::endl;
-            std::cout << std::endl;
-            S(x0) S(x1) S(x2) S(x3) S(x4) S(x5) S(x6) S(x7) S(x8) S(x9)
-            S(x10) S(x11) S(x12) S(x13) S(x14) S(x15) S(x16) S(x17) S(x18) S(x19)
-            S(x20) S(x21) S(x22) S(x23) S(x24) S(x25) S(x26) S(x27) S(x28) S(x29)
-            S(x30) S(x31) S(x32) S(x33) S(x34) S(x35) S(x36) S(x37) S(x38) S(x39)
-            S(x40) S(x41) S(x42) S(x43) S(x44) S(x45) S(x46) S(x47) S(x48) S(x49)
-            S(x50) S(x51) S(x52) S(x53) S(x54) S(x55) S(x56) S(x57) S(x58) S(x59)
-            S(x60) S(x61) S(x62) S(x63) S(x64) S(x65) S(x66) S(x67) S(x68) S(x69)
-            S(x70) S(x71) S(x72) S(x73) S(x74) S(x75) S(x76) S(x77) S(x78) S(x79)
-            S(x80) S(x81) S(x82) S(x83) S(x84) S(x85) S(x86) S(x87) S(x88) S(x89)
-            S(x90) S(x91) S(x92) S(x93) S(x94) S(x95) S(x96) S(x97) S(x98) S(x99)
-            S(x100) S(x101)
-
             const arb_value_type grad_neck1_V            = x0*x36*(x18 + x29 + x35)/_pp_var_neck1_diam;
             const arb_value_type grad_neck1_n_CL         = -x38*x39*(x17 + x29);
             const arb_value_type grad_neck1_n_CA         = x39*x40*(x13 + x35);
@@ -329,12 +328,29 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
              _pp_var_head2_ggaba[i]     += dt * grad_head2_ggaba;
              _pp_var_head2_ca_presyn[i] += dt * grad_head2_ca_presyn;
 
+            if (_pp_var_head1_n_CA[i] <= 0) _pp_var_head1_n_CA[i] = 1e-20;
+            if (_pp_var_head2_n_CA[i] <= 0) _pp_var_head2_n_CA[i] = 1e-20;
+            if (_pp_var_head1_n_CL[i] <= 0) _pp_var_head1_n_CL[i] = 1e-20;
+            if (_pp_var_head2_n_CL[i] <= 0) _pp_var_head2_n_CL[i] = 1e-20;
+            if (_pp_var_neck1_n_CA[i] <= 0) _pp_var_neck1_n_CA[i] = 1e-20;
+            if (_pp_var_neck2_n_CA[i] <= 0) _pp_var_neck2_n_CA[i] = 1e-20;
+            if (_pp_var_neck1_n_CL[i] <= 0) _pp_var_neck1_n_CL[i] = 1e-20;
+            if (_pp_var_neck2_n_CL[i] <= 0) _pp_var_neck2_n_CL[i] = 1e-20;
+            if (_pp_var_head1_n_B[i] <= 0)  _pp_var_head1_n_B[i] = 1e-20;
+            if (_pp_var_head2_n_B[i] <= 0)  _pp_var_head2_n_B[i] = 1e-20;
+
+
+        //TODO fixen van weights zodat het minder calculaties worden :D
              //write current attributions
             const arb_value_type I_inward_dend1 = x18; //[A]
 //            const arb_value_type I_inward_dend2 = x79; //[A]
 
             _pp_var_vec_i[cv1] +=  fma(_pp_var_gap_junctions[i].weight , I_inward_dend1, _pp_var_vec_i[cv1]); //[A] -> [A/m2]
 //            _pp_var_vec_i[cv2] +=  fma( _pp_var_gap_junctions[i].weight , I_inward_dend2, _pp_var_vec_i[cv2]); //[A] -> [A/m2] This can not be used right now..
+
+#ifdef DEBUG_glomerulus
+    iteration++;
+#endif
 
         }
     }
@@ -347,16 +363,16 @@ namespace arb::IOU_catalogue::kernel_glomerulus {
 }
 
 extern "C" {
-arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_interface_multicore() {
+arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_gj_interface_multicore() {
     static arb_mechanism_interface result;
-    result.partition_width = arb::IOU_catalogue::kernel_glomerulus::simd_width_;
+    result.partition_width = arb::IOU_catalogue::kernel_glomerulus_gj::simd_width_;
     result.backend=arb_backend_kind_cpu;
     result.alignment=1;
-    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::init;
-    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::compute_currents;
-    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::apply_events;
-    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::advance_state;
-    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::write_ions;
-    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus::post_event;
+    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::init;
+    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::compute_currents;
+    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::apply_events;
+    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::advance_state;
+    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::write_ions;
+    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::post_event;
     return &result;
 }}
