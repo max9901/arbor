@@ -7,6 +7,7 @@
 #include "IOU_Mechs/cx36_gj.hpp"
 #include "IOU_Mechs/cx36k_gj.hpp"
 #include "IOU_Mechs/smol_dend.hpp"
+#include "IOU_Mechs/adex.hpp"
 
 namespace arb {
 
@@ -51,6 +52,10 @@ mechanism_catalogue build_IOU_catalogue() {
 #ifdef ARB_HAVE_GPU
     cat.register_implementation("smol_dend", std::make_unique<mechanism>(make_arb_IOU_catalogue_smol_dend(), *make_arb_IOU_catalogue_smol_dend_interface_gpu()));
 #endif
+
+    // elias adex
+    cat.add("adex", make_arb_IOU_catalogue_adex());
+    cat.register_implementation("adex", std::make_unique<mechanism>(make_arb_IOU_catalogue_adex(), *make_arb_IOU_catalogue_adex_interface_multicore()));
 
     return cat;
 }
