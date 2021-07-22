@@ -49,12 +49,16 @@ namespace arb::IOU_catalogue::kernel_adex {
         PPACK_IFACE_BLOCK;
         std::cout << "init adex "<< std::endl;
         for (unsigned i = 0; i < _pp_var_width; i++) {
+            const auto nidx = _pp_var_node_index[i];
             _pp_var_Vcut[i] = _pp_var_VT[i] + 5. *_pp_var_DeltaT[i];
-            S(_pp_var_Vcut[i]);
+            S(_pp_var_vec_v[nidx]);
+            _pp_var_vec_i[nidx] = 0;
+            //_pp_var_vec_v[nidx] = -50;
         }
     }
 
-    static void compute_currents(arb_mechanism_ppack * pp) { }
+    static void compute_currents(arb_mechanism_ppack * pp) {
+    }
 
     static void advance_state(arb_mechanism_ppack* pp) {
         /*
@@ -68,8 +72,10 @@ namespace arb::IOU_catalogue::kernel_adex {
             // */
         PPACK_IFACE_BLOCK;
         for (unsigned i = 0; i < _pp_var_width; i++) {
-            const arb_value_type vm = _pp_var_vec_v[i] * 1e-3 /*mV -> V*/;
-            const arb_value_type dt = _pp_var_vec_dt[i] * 1e-3 /*ms -> s*/;
+            const auto nidx = _pp_var_node_index[i];
+            S(_pp_var_vec_v[nidx]);
+            const arb_value_type vm = _pp_var_vec_v[nidx] * 1e-3 /*mV -> V*/;
+            const arb_value_type dt = _pp_var_vec_dt[nidx] * 1e-3 /*ms -> s*/;
             /*  dvm/dt = (gL*(EL-vm)+gL*DeltaT*exp((vm-VT)/DeltaT) + I -w)/C : volt
              *  dw/dt = (a*(vm-EL)-w)/tauw : amp 
              * */
@@ -79,16 +85,15 @@ namespace arb::IOU_catalogue::kernel_adex {
                     )/_pp_var_tauw[i];
             arb_value_type il = _pp_var_gL[i]*(_pp_var_EL[i]-vm);
             arb_value_type id = _pp_var_gL[i]*_pp_var_DeltaT[i]*exp((vm-_pp_var_VT[i])/_pp_var_DeltaT[i]);
-            id = 0;
             const arb_value_type grad_vm = (
                     il +
                     id +
                     _pp_var_I[i] -_pp_var_w[i])/_pp_var_C[i];
             _pp_var_w[i] += 1e3 * dt * grad_w;
-            _pp_var_vec_v[i] += 1e3 * dt*grad_vm;
+            _pp_var_vec_v[nidx] += 1e3 * dt*grad_vm;
 
             //plot -2.118e-09 5.27682 1.5e-09 4.90278e-14
-            std::cout << "plot " << il << " " << id << " " << _pp_var_I[i] << " " << _pp_var_w[i] << std::endl;
+            std::cout << "plot " << i << "=> " << nidx  << " / " << il << " " << id << " " << _pp_var_I[i] << " " << _pp_var_w[i] << std::endl;
 
             if (vm > _pp_var_Vcut[i]) {
                 std::cout << "I'm triggered " << vm << " > " << _pp_var_Vcut[i] << std::endl;
