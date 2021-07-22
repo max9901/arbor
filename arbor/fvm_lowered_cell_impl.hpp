@@ -533,7 +533,8 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
 
     //get the gapjunction mech
     //TODO TODO TODO check if gap mech is valid...
-    {
+    if(gj_vector.size() != 0){
+        std::cout << "adding gap junction mech\n";
         auto gapmech = rec.gap_junction_mech();
         auto name = gapmech.name();
         auto minst = mech_instance(name);
