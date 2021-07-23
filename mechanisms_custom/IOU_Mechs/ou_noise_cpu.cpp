@@ -30,13 +30,13 @@ static constexpr unsigned simd_width_ = 0;
 [[maybe_unused]] auto& _pp_var_mechanism_id      = pp->mechanism_id;\
 [[maybe_unused]] auto& _pp_var_index_constraints = pp->index_constraints; \
                           \
-[[maybe_unused]] auto& _pp_var_theta  = pp->globals[0];      \
-[[maybe_unused]] auto& _pp_var_sigma  = pp->globals[1];      \
-[[maybe_unused]] auto& _pp_var_mu     = pp->globals[2];      \
-[[maybe_unused]] auto& _pp_var_alpha  = pp->globals[3];       \
-[[maybe_unused]] auto& _pp_var_seed   = pp->globals[4];       \
-[[maybe_unused]] auto& _pp_var_cnt    = pp->globals[5];       \
-[[maybe_unused]] auto* _pp_var_ouNoise  = pp->state_vars[0]; \
+[[maybe_unused]] auto& _pp_var_theta  = pp->globals[0];        \
+[[maybe_unused]] auto& _pp_var_sigma  = pp->globals[1];        \
+[[maybe_unused]] auto& _pp_var_mu     = pp->globals[2];        \
+[[maybe_unused]] auto& _pp_var_alpha  = pp->globals[3];        \
+[[maybe_unused]] auto& _pp_var_seed   = pp->globals[4];        \
+[[maybe_unused]] auto& _pp_var_cnt    = pp->globals[5];        \
+[[maybe_unused]] auto* _pp_var_ouNoise  = pp->state_vars[0];   \
 //End of IFACEBLOCK
 
 // interface methods

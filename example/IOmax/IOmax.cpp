@@ -297,7 +297,6 @@ arb::cable_cell IO_cell(){
     decor.paint("soma"_lab, cal);
 
     //dend mechs
-
     arb::mechanism_desc smol_dend("smol_dend");
     smol_dend["cah_gmax"]  = 0.010 * 1.7 / 2;
     smol_dend["kca_gmax"]  = 0.200 * 0.7 * 1.5;

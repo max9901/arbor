@@ -5,7 +5,7 @@
 #include "IOU_Mechs/glomerulus_gj.hpp"
 #include "IOU_Mechs/linear_gj.hpp"
 #include "IOU_Mechs/cx36_gj.hpp"
-#include "IOU_Mechs/cx36k_gj.hpp"
+
 #include "IOU_Mechs/smol_dend.hpp"
 #include "IOU_Mechs/adex.hpp"
 
@@ -34,10 +34,6 @@ mechanism_catalogue build_IOU_catalogue() {
 #ifdef ARB_HAVE_GPU
     cat.register_implementation("cx36_gj",std::make_unique<mechanism>(make_arb_IOU_catalogue_cx36_gj(), *make_arb_IOU_catalogue_cx36_gj_interface_gpu()));
 #endif
-
-    //not tested !
-    cat.add("cx36k_gj", make_arb_IOU_catalogue_cx36k_gj());
-    cat.register_implementation("cx36k_gj",std::make_unique<mechanism>(make_arb_IOU_catalogue_cx36k_gj(), *make_arb_IOU_catalogue_cx36k_gj_interface_multicore()));
 
     //cpu/gpu done waiting on validation
     cat.add("glomerulus_gj", make_arb_IOU_catalogue_glomerulus_gj());

@@ -165,205 +165,122 @@ static void rates_h(arb_mechanism_ppack* pp, int i_, arb_value_type v);
 static void rates_cacc(arb_mechanism_ppack* pp, int i_, arb_value_type v, arb_value_type cai);
 
 // interface methods
-static void init(arb_mechanism_ppack* pp) {
-    std::cout << "init dend" << std::endl;
-    PPACK_IFACE_BLOCK;
 
-//CAH
+
+static void init(arb_mechanism_ppack* pp) {
+    std::cout << "init dend CPU" << std::endl;
+    PPACK_IFACE_BLOCK;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
+//globals
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type v = _pp_var_vec_v[node_indexi_];
+//CAH
         _pp_var_cah_eca[i_] =  120.0;
         _pp_var_cah_temperature[i_] = _pp_var_cah_celsius[i_]+ 273.14999999999998;
         rates_cah(pp, i_, v);
         rates_cah(pp, i_, v);
         _pp_var_cah_r_q[i_] = _pp_var_cah_r_inf[i_];
-    }
-    if (_pp_var_multiplicity) {
-        for (arb_size_type ix = 0; ix < 1; ++ix) {
-            for (arb_size_type iy = 0; iy < _pp_var_width; ++iy) {
-                pp->state_vars[ix][iy] *= _pp_var_multiplicity[iy];
-            }
-        }
-    }
-
 //KCA
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        auto ion_ca_indexi_ = _pp_var_kca_ion_ca_index[i_];
-        arb_value_type cai = _pp_var_kca_ion_ca.internal_concentration[ion_ca_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        const arb_value_type cai_kca = _pp_var_kca_ion_ca.internal_concentration[_pp_var_kca_ion_ca_index[i_]];
         _pp_var_kca_ek[i_] =  -75.0;
         _pp_var_kca_temperature[i_] = _pp_var_kca_celsius[i_]+ 273.14999999999998;
-        rates_kca(pp, i_, v, cai);
-        rates_kca(pp, i_, v, cai);
+        rates_kca(pp, i_, v, cai_kca);
+        rates_kca(pp, i_, v, cai_kca);
         _pp_var_kca_z_q[i_] = _pp_var_kca_z_inf[i_];
-    }
-    if (_pp_var_multiplicity) {
-        for (arb_size_type ix = 1; ix < 2; ++ix) {
-            for (arb_size_type iy = 0; iy < _pp_var_width; ++iy) {
-                pp->state_vars[ix][iy] *= _pp_var_multiplicity[iy];
-            }
-        }
-    }
 //H
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
         _pp_var_h_eh[i_] =  -43.0;
         _pp_var_h_temperature[i_] = _pp_var_h_celsius[i_]+ 273.14999999999998;
         rates_h(pp, i_, v);
         rates_h(pp, i_, v);
         _pp_var_h_n_q[i_] = _pp_var_h_n_inf[i_];
-    }
-    if (_pp_var_multiplicity) {
-        for (arb_size_type ix = 2; ix < 3; ++ix) {
-            for (arb_size_type iy = 0; iy < _pp_var_width; ++iy) {
-                pp->state_vars[ix][iy] *= _pp_var_multiplicity[iy];
-            }
-        }
-    }
-
 //CACC
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        auto ion_ca_indexi_ = _pp_var_cacc_ion_ca_index[i_];
-        arb_value_type cai = _pp_var_cacc_ion_ca.internal_concentration[ion_ca_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        const auto ion_ca_cacc_indexi_ = _pp_var_cacc_ion_ca_index[i_];
+        const arb_value_type cai_cacc = _pp_var_cacc_ion_ca.internal_concentration[ion_ca_cacc_indexi_];
         _pp_var_cacc_ecl[i_] =  -45.0;
         _pp_var_cacc_temperature[i_] = _pp_var_cacc_celsius[i_]+ 273.14999999999998;
-        rates_cacc(pp, i_, v, cai);
-        rates_cacc(pp, i_, v, cai);
+        rates_cacc(pp, i_, v, cai_cacc);
+        rates_cacc(pp, i_, v, cai_cacc);
     }
-    if (_pp_var_multiplicity) {
-        for (arb_size_type ix = 3; ix < 3; ++ix) {
-            for (arb_size_type iy = 0; iy < _pp_var_width; ++iy) {
-                pp->state_vars[ix][iy] *= _pp_var_multiplicity[iy];
-            }
-        }
-    }
-
-}
-
-static void advance_state(arb_mechanism_ppack* pp) {
-    PPACK_IFACE_BLOCK;
-
-//CAH
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
-        arb_value_type b_0_;
-        rates_cah(pp, i_, v);
-        b_0_ = _pp_var_cah_rate_r_q[i_];
-        _pp_var_cah_r_q[i_] = _pp_var_cah_r_q[i_]+b_0_*dt;
-    }
-//KCA
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto ion_ca_indexi_ = _pp_var_kca_ion_ca_index[i_];
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
-        arb_value_type cai = _pp_var_kca_ion_ca.internal_concentration[ion_ca_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
-        arb_value_type b_0_;
-        rates_kca(pp, i_, v, cai);
-        b_0_ = _pp_var_kca_rate_z_q[i_];
-        _pp_var_kca_z_q[i_] = _pp_var_kca_z_q[i_]+b_0_*dt;
-    }
-//H
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
-        arb_value_type b_0_;
-        rates_h(pp, i_, v);
-        b_0_ = _pp_var_h_rate_n_q[i_];
-        _pp_var_h_n_q[i_] = _pp_var_h_n_q[i_]+b_0_*dt;
-    }
-//CACC
-    //empty
-
-
 }
 
 static void compute_currents(arb_mechanism_ppack* pp) {
-    PPACK_IFACE_BLOCK;
-    //CAH
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto ion_ca_indexi_ = _pp_var_cah_ion_ca_index[i_];
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type conductivity_ = 0;
-        arb_value_type current_ = 0;
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
-        arb_value_type ica = 0;
-        _pp_var_cah_conductanceScale[i_] =  1.0;
-        _pp_var_cah_fopen0[i_] = _pp_var_cah_r_fcond[i_];
-        _pp_var_cah_fopen[i_] = _pp_var_cah_conductanceScale[i_]*_pp_var_cah_fopen0[i_];
-        _pp_var_cah_g[i_] = _pp_var_cah_conductance[i_]*_pp_var_cah_fopen[i_];
-        _pp_var_cah_gion[i_] = _pp_var_cah_gmax[i_]*_pp_var_cah_fopen[i_];
-        ica = _pp_var_cah_gion[i_]*(v-_pp_var_cah_eca[i_]);
-        current_ = ica;
-        conductivity_ = _pp_var_cah_gion[i_];
-        _pp_var_vec_g[node_indexi_] = fma(10.0*_pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
-        _pp_var_vec_i[node_indexi_] = fma(10.0*_pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
-        _pp_var_cah_ion_ca.current_density[ion_ca_indexi_] = fma(10.0*_pp_var_weight[i_], ica, _pp_var_cah_ion_ca.current_density[ion_ca_indexi_]);
-    }
+            PPACK_IFACE_BLOCK;
+            for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
+                const auto node_indexi_ = _pp_var_node_index[i_];
+                const arb_value_type v = _pp_var_vec_v[node_indexi_];
+                const auto ion_ca_cah_indexi_ = _pp_var_cah_ion_ca_index[i_];
+                const auto ion_ca_cacc_indexi_ = _pp_var_cacc_ion_ca_index[i_];
+//CAH
+                {
+                    _pp_var_cah_conductanceScale[i_] = 1.0;
+                    _pp_var_cah_fopen0[i_] = _pp_var_cah_r_fcond[i_];
+                    _pp_var_cah_fopen[i_] = _pp_var_cah_conductanceScale[i_] * _pp_var_cah_fopen0[i_];
+                    _pp_var_cah_g[i_] = _pp_var_cah_conductance[i_] * _pp_var_cah_fopen[i_];
+                    _pp_var_cah_gion[i_] = _pp_var_cah_gmax[i_] * _pp_var_cah_fopen[i_];
+                    const arb_value_type current_ = _pp_var_cah_gion[i_] * (v - _pp_var_cah_eca[i_]);
+                    const arb_value_type conductivity_ = _pp_var_cah_gion[i_];
+                    _pp_var_vec_g[node_indexi_] = fma(10.0 * _pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
+                    _pp_var_vec_i[node_indexi_] = fma(10.0 * _pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
+                    _pp_var_cah_ion_ca.current_density[ion_ca_cah_indexi_] = fma(10.0 * _pp_var_weight[i_], current_, _pp_var_cah_ion_ca.current_density[ion_ca_cah_indexi_]);
+                }
 //KCA
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type conductivity_ = 0;
-        arb_value_type current_ = 0;
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
-        arb_value_type ik = 0;
-        _pp_var_kca_conductanceScale[i_] =  1.0;
-        _pp_var_kca_fopen0[i_] = _pp_var_kca_z_fcond[i_];
-        _pp_var_kca_fopen[i_] = _pp_var_kca_conductanceScale[i_]*_pp_var_kca_fopen0[i_];
-        _pp_var_kca_g[i_] = _pp_var_kca_conductance[i_]*_pp_var_kca_fopen[i_];
-        _pp_var_kca_gion[i_] = _pp_var_kca_gmax[i_]*_pp_var_kca_fopen[i_];
-        ik = _pp_var_kca_gion[i_]*(v-_pp_var_kca_ek[i_]);
-        current_ = ik;
-        conductivity_ = _pp_var_kca_gion[i_];
-        _pp_var_vec_g[node_indexi_] = fma(10.0*_pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
-        _pp_var_vec_i[node_indexi_] = fma(10.0*_pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
-    }
+                {
+                    _pp_var_kca_conductanceScale[i_] = 1.0;
+                    _pp_var_kca_fopen0[i_] = _pp_var_kca_z_fcond[i_];
+                    _pp_var_kca_fopen[i_] = _pp_var_kca_conductanceScale[i_] * _pp_var_kca_fopen0[i_];
+                    _pp_var_kca_g[i_] = _pp_var_kca_conductance[i_] * _pp_var_kca_fopen[i_];
+                    _pp_var_kca_gion[i_] = _pp_var_kca_gmax[i_] * _pp_var_kca_fopen[i_];
+                    const arb_value_type current_ = _pp_var_kca_gion[i_] * (v - _pp_var_kca_ek[i_]);
+                    const arb_value_type conductivity_ = _pp_var_kca_gion[i_];
+                    _pp_var_vec_g[node_indexi_] = fma(10.0 * _pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
+                    _pp_var_vec_i[node_indexi_] = fma(10.0 * _pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
+                }
 //H
-    for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type conductivity_ = 0;
-        arb_value_type current_ = 0;
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
-        arb_value_type ih = 0;
-        _pp_var_h_conductanceScale[i_] =  1.0;
-        _pp_var_h_fopen0[i_] = _pp_var_h_n_fcond[i_];
-        _pp_var_h_fopen[i_] = _pp_var_h_conductanceScale[i_]*_pp_var_h_fopen0[i_];
-        _pp_var_h_g[i_] = _pp_var_h_conductance[i_]*_pp_var_h_fopen[i_];
-        _pp_var_h_gion[i_] = _pp_var_h_gmax[i_]*_pp_var_h_fopen[i_];
-        ih = _pp_var_h_gion[i_]*(v-_pp_var_h_eh[i_]);
-        current_ = ih;
-        conductivity_ = _pp_var_h_gion[i_];
-        _pp_var_vec_g[node_indexi_] = fma(10.0*_pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
-        _pp_var_vec_i[node_indexi_] = fma(10.0*_pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
-    }
+                {
+                    _pp_var_h_conductanceScale[i_] = 1.0;
+                    _pp_var_h_fopen0[i_] = _pp_var_h_n_fcond[i_];
+                    _pp_var_h_fopen[i_] = _pp_var_h_conductanceScale[i_] * _pp_var_h_fopen0[i_];
+                    _pp_var_h_g[i_] = _pp_var_h_conductance[i_] * _pp_var_h_fopen[i_];
+                    _pp_var_h_gion[i_] = _pp_var_h_gmax[i_] * _pp_var_h_fopen[i_];
+                    const arb_value_type current_ = _pp_var_h_gion[i_] * (v - _pp_var_h_eh[i_]);
+                    const arb_value_type conductivity_ = _pp_var_h_gion[i_];
+                    _pp_var_vec_g[node_indexi_] = fma(10.0 * _pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
+                    _pp_var_vec_i[node_indexi_] = fma(10.0 * _pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
+                }
 //CACC
+                {
+                    rates_cacc(pp, i_, v, _pp_var_cacc_ion_ca.internal_concentration[ion_ca_cacc_indexi_]);
+                    _pp_var_cacc_conductanceScale[i_] = 1.0;
+                    _pp_var_cacc_fopen0[i_] = _pp_var_cacc_m_fcond[i_];
+                    _pp_var_cacc_fopen[i_] = _pp_var_cacc_conductanceScale[i_] * _pp_var_cacc_fopen0[i_];
+                    _pp_var_cacc_g[i_] = _pp_var_cacc_conductance[i_] * _pp_var_cacc_fopen[i_];
+                    _pp_var_cacc_gion[i_] = _pp_var_cacc_gmax[i_] * _pp_var_cacc_fopen[i_];
+                    const arb_value_type current_ = _pp_var_cacc_gion[i_] * (v - _pp_var_cacc_ecl[i_]);
+                    const arb_value_type conductivity_ = _pp_var_cacc_gion[i_];
+                    _pp_var_vec_g[node_indexi_] = fma(10.0 * _pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
+                    _pp_var_vec_i[node_indexi_] = fma(10.0 * _pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
+                }
+            }
+        }
+
+static void advance_state(arb_mechanism_ppack* pp) {
+    PPACK_IFACE_BLOCK;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto ion_ca_indexi_ = _pp_var_cacc_ion_ca_index[i_];
+//globals
         auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type conductivity_ = 0;
-        arb_value_type current_ = 0;
-        arb_value_type icl = 0;
-        arb_value_type cai = _pp_var_cacc_ion_ca.internal_concentration[ion_ca_indexi_];
+        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type v = _pp_var_vec_v[node_indexi_];
-        rates_cacc(pp, i_, v, cai);
-        _pp_var_cacc_conductanceScale[i_] =  1.0;
-        _pp_var_cacc_fopen0[i_] = _pp_var_cacc_m_fcond[i_];
-        _pp_var_cacc_fopen[i_] = _pp_var_cacc_conductanceScale[i_]*_pp_var_cacc_fopen0[i_];
-        _pp_var_cacc_g[i_] = _pp_var_cacc_conductance[i_]*_pp_var_cacc_fopen[i_];
-        _pp_var_cacc_gion[i_] = _pp_var_cacc_gmax[i_]*_pp_var_cacc_fopen[i_];
-        icl = _pp_var_cacc_gion[i_]*(v-_pp_var_cacc_ecl[i_]);
-        current_ = icl;
-        conductivity_ = _pp_var_cacc_gion[i_];
-        _pp_var_vec_g[node_indexi_] = fma(10.0*_pp_var_weight[i_], conductivity_, _pp_var_vec_g[node_indexi_]);
-        _pp_var_vec_i[node_indexi_] = fma(10.0*_pp_var_weight[i_], current_, _pp_var_vec_i[node_indexi_]);
+//CAH
+        rates_cah(pp, i_, v);
+        _pp_var_cah_r_q[i_] = _pp_var_cah_r_q[i_] + _pp_var_cah_rate_r_q[i_] * dt;
+//KCA
+        rates_kca(pp, i_, v, _pp_var_kca_ion_ca.internal_concentration[_pp_var_kca_ion_ca_index[i_]]);
+        _pp_var_kca_z_q[i_] = _pp_var_kca_z_q[i_] + _pp_var_kca_rate_z_q[i_] * dt;
+//H
+        rates_h(pp, i_, v);
+        _pp_var_h_n_q[i_] = _pp_var_h_n_q[i_] + _pp_var_h_rate_n_q[i_] * dt;
+//CACC
+        //empty
     }
 }
 
@@ -441,6 +358,7 @@ static void rates_cacc(arb_mechanism_ppack* pp, int i_, arb_value_type v, arb_va
     _pp_var_cacc_m_q[i_] = _pp_var_cacc_m_inf[i_];
     _pp_var_cacc_m_fcond[i_] = pow(_pp_var_cacc_m_q[i_], _pp_var_cacc_m_instances[i_]);
 }
+
 #undef PPACK_IFACE_BLOCK
 } // namespace kernel_cah
 } // namespace smol_catalogue
