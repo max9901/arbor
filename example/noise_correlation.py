@@ -55,9 +55,6 @@ class ring_recipe (arbor.recipe):
     def event_generators(self, gid): return []
     def probes(self, gid): return [arbor.cable_probe_membrane_voltage('"root"')]
     def global_properties(self, kind): return self.props
-    def gap_junction_mech(self):
-        print("this function mech is used")
-        return arbor.mechanism('glomerulus')
     def gap_junctions_on(self, gid):
         conns = []
         for i in range(self.ncells):
@@ -75,14 +72,29 @@ decomp = arbor.partition_load_balance(recipe, context)
 sim = arbor.simulation(recipe, decomp, context)
 sim.record(arbor.spike_recording.all)
 handles = [sim.sample((gid, 0), arbor.regular_schedule(0.1)) for gid in range(ncells)]
-sim.run(100, dt=0.01)
+
+
 
 vs = []
+
+# sim.run(50, dt=0.01)
+
+
+
+sim.run(50, dt=0.01)
 for gid in range(ncells):
     samples, meta = sim.samples(handles[gid])[0]
-    #plt.plot(samples[:,0], samples[:,1])
     m = np.isnan(samples[:,1])
-    vs.append(samples[len(samples)//2:,1])
+    vs.append(samples[:,1])
+
+sim.reset_mem()
+sim.run(100, dt=0.01)
+for gid in range(ncells):
+    samples, meta = sim.samples(handles[gid])[0]
+    m = np.isnan(samples[:,1])
+    vs[gid] = np.append(vs[gid], samples[:,1])
+
+#
 vs = np.array(vs)
 vs = (vs - vs.mean(1)[:,None]) / vs.std(1)[:,None]
 print(vs.shape)
@@ -94,7 +106,7 @@ plt.colorbar()
 plt.show()
 
 for v in vs:
-    plt.plot(v, color='black', alpha=0.1)
+    plt.plot(v[len(v)//2:], color='black', alpha=0.1)
 
 plt.axis('off')
 plt.tight_layout()

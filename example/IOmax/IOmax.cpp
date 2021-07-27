@@ -140,9 +140,9 @@ public:
 //        return conns;
 //    }
 
-    [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
-        return arb::mechanism_desc("glomerulus_gj");
-    }
+//    [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
+//        return arb::mechanism_desc("glomerulus_gj");
+//    }
 
 private:
     io_params params_;
