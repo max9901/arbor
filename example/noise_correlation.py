@@ -64,7 +64,7 @@ class ring_recipe (arbor.recipe):
         return conns
 
 
-ncells = 128
+ncells = 10000
 recipe = ring_recipe(ncells)
 context = arbor.context()
 #context = arbor.context(gpu_id=0)
@@ -81,14 +81,14 @@ vs = []
 
 
 
-sim.run(50, dt=0.01)
+sim.run(500, dt=0.01)
 for gid in range(ncells):
     samples, meta = sim.samples(handles[gid])[0]
     m = np.isnan(samples[:,1])
     vs.append(samples[:,1])
 
 sim.reset_mem()
-sim.run(100, dt=0.01)
+sim.run(1000, dt=0.01)
 for gid in range(ncells):
     samples, meta = sim.samples(handles[gid])[0]
     m = np.isnan(samples[:,1])
@@ -98,17 +98,18 @@ for gid in range(ncells):
 vs = np.array(vs)
 vs = (vs - vs.mean(1)[:,None]) / vs.std(1)[:,None]
 print(vs.shape)
-img = abs(np.cov(vs))
 
-plt.imshow(img)
-plt.colorbar()
-
-plt.show()
-
-for v in vs:
-    plt.plot(v[len(v)//2:], color='black', alpha=0.1)
-
-plt.axis('off')
-plt.tight_layout()
-
-plt.show()
+# img = abs(np.cov(vs))
+#
+# plt.imshow(img)
+# plt.colorbar()
+#
+# plt.show()
+#
+# for v in vs:
+#     plt.plot(v[len(v)//2:], color='black', alpha=0.1)
+#
+# plt.axis('off')
+# plt.tight_layout()
+#
+# plt.show()
