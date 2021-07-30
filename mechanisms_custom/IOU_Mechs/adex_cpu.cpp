@@ -7,7 +7,7 @@
 #include <arbor/mechanism_abi.h>
 
 namespace arb::IOU_catalogue::kernel_adex {
-    static constexpr unsigned simd_width_ = 0;
+    static constexpr unsigned simd_width_ = 1;
 
 #define S(x) std::cout << #x << "\t\t" << x << std::endl;
 

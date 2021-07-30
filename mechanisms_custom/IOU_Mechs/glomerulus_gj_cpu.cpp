@@ -28,7 +28,7 @@ int iteration = 0;
 #include <cmath>
 
 namespace arb::IOU_catalogue::kernel_glomerulus_gj {
-    static constexpr unsigned simd_width_ = 0;
+    static constexpr unsigned simd_width_ = 1;
 
 #define PPACK_IFACE_BLOCK \
 [[maybe_unused]] auto  _pp_var_width                = pp->width;\

@@ -332,8 +332,8 @@ arb::cable_cell IO_cell(){
 //    leak["gmax"] = 1.3e-05;
 //    decor.paint("(all)"_reg, leak);
 
-    //    arb::mechanism_desc ou_noise("ou_noise/seed=10");
-    //    decor.paint("(all)"_reg, ou_noise);
+//    arb::mechanism_desc ou_noise("ou_noise/seed=10");
+//    decor.paint("(all)"_reg, ou_noise);
 
     // Add a spike detector to the soma at the beginning
     //    decor.place(arb::mlocation{0,0}, arb::threshold_detector{10});

@@ -23,7 +23,7 @@ using ::std::min;
 using ::std::pow;
 using ::std::sin;
 
-static constexpr unsigned simd_width_ = 0;
+static constexpr unsigned simd_width_ = 1;
 
 #define PPACK_IFACE_BLOCK \
 [[maybe_unused]] auto  _pp_var_width             = pp->width;\
