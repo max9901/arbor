@@ -88,7 +88,7 @@ void mechanism_ou_noise_gpu_compute_currents_(arb_mechanism_ppack* p) {
 void mechanism_ou_noise_gpu_advance_state_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_write_ions_(arb_mechanism_ppack* p) {}
 void mechanism_ou_noise_gpu_post_event_(arb_mechanism_ppack* p) {}
-void mechanism_ou_noise_gpu_apply_events_(arb_mechanism_ppack* p) {}
+void mechanism_ou_noise_gpu_apply_events_(arb_mechanism_ppack* p, arb_deliverable_event_stream*) {}
 
 } // namespace IOU_catalogue
 } // namespace arb

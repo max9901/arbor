@@ -297,28 +297,28 @@ arb::cable_cell IO_cell(){
     decor.paint("soma"_lab, cal);
 
     //dend mechs
-    arb::mechanism_desc smol_dend("smol_dend");
-    smol_dend["cah_gmax"]  = 0.010 * 1.7 / 2;
-    smol_dend["kca_gmax"]  = 0.200 * 0.7 * 1.5;
-    smol_dend["h_gmax"]    = 0.025 * 1.7;
-    smol_dend["cacc_gmax"] = 0.007;
-    decor.paint("dend"_lab, smol_dend);
+//    arb::mechanism_desc smol_dend("smol_dend");
+//    smol_dend["cah_gmax"]  = 0.010 * 1.7 / 2;
+//    smol_dend["kca_gmax"]  = 0.200 * 0.7 * 1.5;
+//    smol_dend["h_gmax"]    = 0.025 * 1.7;
+//    smol_dend["cacc_gmax"] = 0.007;
+//    decor.paint("dend"_lab, smol_dend);
 
-//    arb::mechanism_desc cah("cah");
-//    cah["gmax"] =0.010 * 1.7 / 2;
-//    decor.paint("dend"_lab, cah);
-//
-//    arb::mechanism_desc kca("kca");
-//    kca["gmax"] = 0.200 * 0.7 * 1.5;
-//    decor.paint("dend"_lab, kca);
-//
-//    arb::mechanism_desc h("h");
-//    h["gmax"] = 0.025 * 1.7;
-//    decor.paint("dend"_lab, h);
-//
-//    arb::mechanism_desc cacc("cacc");
-//    cacc["gmax"] = 0.007;
-//    decor.paint("dend"_lab, cacc);
+    arb::mechanism_desc cah("cah");
+    cah["gmax"] =0.010 * 1.7 / 2;
+    decor.paint("dend"_lab, cah);
+
+    arb::mechanism_desc kca("kca");
+    kca["gmax"] = 0.200 * 0.7 * 1.5;
+    decor.paint("dend"_lab, kca);
+
+    arb::mechanism_desc h("h");
+    h["gmax"] = 0.025 * 1.7;
+    decor.paint("dend"_lab, h);
+
+    arb::mechanism_desc cacc("cacc");
+    cacc["gmax"] = 0.007;
+    decor.paint("dend"_lab, cacc);
 
     //axon mechs
     arb::mechanism_desc na_a("na_a");

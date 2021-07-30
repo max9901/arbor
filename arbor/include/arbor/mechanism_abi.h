@@ -1,6 +1,7 @@
 #ifndef ARB_MECH_ABI
 #define ARB_MECH_ABI
 
+#include <arbor/fvm_types.hpp>
 #include <arbor/arb_types.h>
 
 #ifdef __cplusplus

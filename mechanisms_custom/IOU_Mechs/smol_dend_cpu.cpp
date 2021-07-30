@@ -286,7 +286,7 @@ static void advance_state(arb_mechanism_ppack* pp) {
 
 static void write_ions(arb_mechanism_ppack* pp) {}
 
-static void apply_events(arb_mechanism_ppack*) {}
+static void apply_events(arb_mechanism_ppack*, arb_deliverable_event_stream*) {}
 
 static void post_event(arb_mechanism_ppack*) {}
 
@@ -372,7 +372,7 @@ extern "C" {
     result.alignment=1;
     result.init_mechanism=(arb_mechanism_method)arb::IOU_catalogue::kernel_smol_dend::init;
     result.compute_currents=(arb_mechanism_method)arb::IOU_catalogue::kernel_smol_dend::compute_currents;
-    result.apply_events=(arb_mechanism_method)arb::IOU_catalogue::kernel_smol_dend::apply_events;
+    result.apply_events=(arb_mechanism_method_events)arb::IOU_catalogue::kernel_smol_dend::apply_events;
     result.advance_state=(arb_mechanism_method)arb::IOU_catalogue::kernel_smol_dend::advance_state;
     result.write_ions=(arb_mechanism_method)arb::IOU_catalogue::kernel_smol_dend::write_ions;
     result.post_event=(arb_mechanism_method)arb::IOU_catalogue::kernel_smol_dend::post_event;

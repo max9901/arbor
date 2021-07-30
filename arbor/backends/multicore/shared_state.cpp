@@ -484,17 +484,12 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
 
-
-    //Choose to go the gap junction way or the mechanism_layout way:
-    if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
-        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);      // Extend width to account for requisite SIMD padding.
-        m.ppack_.width              = pos_data.cv.size();
+    if(m.kind() == arb_mechanism_kind_gap_junction){
+        m.ppack_.width            = gap_junctions.size();
     }else{
-        m.width_padded_ = math::round_up(gap_junctions.size(), alignment);    // give the amount of gap junctions as option
-        m.ppack_.width              = gap_junctions.size();
+        m.ppack_.width            = pos_data.cv.size();
     }
 
-    m.ppack_.width            = pos_data.cv.size();
     m.ppack_.mechanism_id     = id;
     m.ppack_.vec_ci           = cv_to_cell.data();
     m.ppack_.vec_di           = cv_to_intdom.data();
@@ -537,7 +532,14 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage
-        std::size_t value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
+        std::size_t value_width_padded = 0;
+        if(m.kind() == arb_mechanism_kind_gap_junction){
+            //todo add padding
+            value_width_padded            = gap_junctions.size();
+        }else{
+            value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
+        }
+
         std::size_t count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*value_width_padded + m.mech_.n_globals;
         store.data_ = array(count, NAN, pad);
         chunk_writer writer(store.data_.data(), value_width_padded);

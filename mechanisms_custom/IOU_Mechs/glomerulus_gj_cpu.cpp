@@ -356,7 +356,7 @@ namespace arb::IOU_catalogue::kernel_glomerulus_gj {
     }
     static void advance_state(arb_mechanism_ppack*) {}
     static void write_ions(arb_mechanism_ppack*)    {}
-    static void apply_events(arb_mechanism_ppack*)  {}
+    static void apply_events(arb_mechanism_ppack*, arb_deliverable_event_stream*) {}
     static void post_event(arb_mechanism_ppack*)    {}
 
 #undef PPACK_IFACE_BLOCK
@@ -370,7 +370,7 @@ arb_mechanism_interface* make_arb_IOU_catalogue_glomerulus_gj_interface_multicor
     result.alignment=1;
     result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::init;
     result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::compute_currents;
-    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::apply_events;
+    result.apply_events    = (arb_mechanism_method_events)arb::IOU_catalogue::kernel_glomerulus_gj::apply_events;
     result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::advance_state;
     result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::write_ions;
     result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_glomerulus_gj::post_event;
