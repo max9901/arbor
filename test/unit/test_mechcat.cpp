@@ -34,23 +34,23 @@ using namespace arb;
 
 using field_kind = mechanism_field_spec::field_kind;
 
-mechanism_info burble_info{
-    {{"quux",  {field_kind::global, "nA", 2.3,   0, 10.}},
-     {"xyzzy", {field_kind::global, "mV", 5.1, -20, 20.}}},
-    {},
-    {},
-    {{"x", {}}},
-    "burbleprint"
-};
+mechanism_info mk_burble_info() {
+    mechanism_info info;
+    info.globals     = {{"quux",  {field_kind::global, "nA", 2.3,   0, 10.}},
+                        {"xyzzy", {field_kind::global, "mV", 5.1, -20, 20.}}};
+    info.ions        = {{"x", {}}};
+    info.fingerprint = "burbleprint";
+    return info;
+}
 
-mechanism_info fleeb_info{
-    {{"plugh", {field_kind::global, "C",   2.3,  0, 10.}},
-     {"norf",  {field_kind::global, "mGy", 0.1,  0, 5000.}}},
-    {},
-    {},
-    {{"a", {}}, {"b", {}}, {"c", {}}, {"d", {}}},
-    "fleebprint"
-};
+mechanism_info mk_fleeb_info() {
+    mechanism_info info;
+    info.globals     = {{"plugh", {field_kind::global, "C",   2.3,  0, 10.}},
+                        {"norf",  {field_kind::global, "mGy", 0.1,  0, 5000.}}};
+    info.ions        = {{"a", {}}, {"b", {}}, {"c", {}}, {"d", {}}};
+    info.fingerprint = "fleebprint";
+    return info;
+}
 
 // Backend classes:
 struct test_backend {
@@ -102,9 +102,6 @@ struct test_backend {
         state state_;
     };
 
-    static void multiply_in_place(fvm_value_type* s, const fvm_index_type* p, int n) {}
-};
-
 struct foo_backend: test_backend {
     static constexpr arb_backend_kind kind = 42;
     foo_backend(): test_backend{{{ "a", arb_ion_state{(arb_value_type*)0x1, nullptr, nullptr, nullptr, nullptr, nullptr}},
@@ -130,7 +127,7 @@ struct bar_backend: test_backend {
 static arb_ion_info ion_list[] {{"a"}, {"b"}, {"c"}, {"d"}, {"e"}, {"f"}};
 
 mechanism_ptr mk_fleeb_foo() {
-    arb_mechanism_type m = {0};
+    arb_mechanism_type m = {ARB_MECH_ABI_VERSION};
     m.fingerprint = "fleebprint";
     m.name        = "fleeb";
     m.kind        = arb_mechanism_kind_density;
@@ -144,7 +141,7 @@ mechanism_ptr mk_fleeb_foo() {
 }
 
 mechanism_ptr mk_special_fleeb_foo() {
-    arb_mechanism_type m = {0};
+    arb_mechanism_type m = {ARB_MECH_ABI_VERSION};
     m.fingerprint = "fleebprint";
     m.name        = "special fleeb";
     m.kind        = arb_mechanism_kind_density;
@@ -158,7 +155,7 @@ mechanism_ptr mk_special_fleeb_foo() {
 }
 
 mechanism_ptr mk_fleeb_bar() {
-    arb_mechanism_type m = {0};
+    arb_mechanism_type m = {ARB_MECH_ABI_VERSION};
     m.fingerprint = "fleebprint";
     m.name        = "fleeb";
     m.kind        = arb_mechanism_kind_density;
@@ -174,7 +171,7 @@ mechanism_ptr mk_fleeb_bar() {
 // Burble implementation:
 
 mechanism_ptr mk_burble_bar() {
-    arb_mechanism_type m = {0};
+    arb_mechanism_type m = {ARB_MECH_ABI_VERSION};
     m.fingerprint = "fnord";
     m.name        = "burble";
     m.kind        = arb_mechanism_kind_density;
@@ -206,8 +203,8 @@ static bool operator==(const mechanism_info& a, const mechanism_info& b) {
 mechanism_catalogue build_fake_catalogue() {
     mechanism_catalogue cat;
 
-    cat.add("fleeb", fleeb_info);
-    cat.add("burble", burble_info);
+    cat.add("fleeb", mk_fleeb_info());
+    cat.add("burble", mk_burble_info());
 
     // Add derived versions with global overrides:
 
@@ -295,14 +292,14 @@ TEST(mechcat, loading) {
 TEST(mechcat, derived_info) {
     auto cat = build_fake_catalogue();
 
-    EXPECT_EQ(fleeb_info,  cat["fleeb"]);
-    EXPECT_EQ(burble_info, cat["burble"]);
+    EXPECT_EQ(mk_fleeb_info(),  cat["fleeb"]);
+    EXPECT_EQ(mk_burble_info(), cat["burble"]);
 
-    mechanism_info expected_special_fleeb = fleeb_info;
+    mechanism_info expected_special_fleeb = mk_fleeb_info();
     expected_special_fleeb.globals["plugh"].default_value = 2.0;
     EXPECT_EQ(expected_special_fleeb, cat["special_fleeb"]);
 
-    mechanism_info expected_fleeb2 = fleeb_info;
+    mechanism_info expected_fleeb2 = mk_fleeb_info();
     expected_fleeb2.globals["plugh"].default_value = 2.0;
     expected_fleeb2.globals["norf"].default_value = 11.0;
     EXPECT_EQ(expected_fleeb2, cat["fleeb2"]);
@@ -576,10 +573,10 @@ TEST(mechcat, import_collisions) {
             auto cat = build_fake_catalogue();
 
             mechanism_catalogue other;
-            other.add("fleeb", burble_info); // Note different mechanism info!
+            other.add("fleeb", mk_burble_info()); // Note different mechanism info!
 
             EXPECT_THROW(cat.import(other, ""), arb::duplicate_mechanism);
-            ASSERT_EQ(cat["fleeb"], fleeb_info);
+            ASSERT_EQ(cat["fleeb"], mk_fleeb_info());
         }
 
         // Collision derived vs base.
@@ -587,7 +584,7 @@ TEST(mechcat, import_collisions) {
             auto cat = build_fake_catalogue();
 
             mechanism_catalogue other;
-            other.add("fleeb2", burble_info);
+            other.add("fleeb2", mk_burble_info());
 
             auto fleeb2_info = cat["fleeb2"];
             EXPECT_THROW(cat.import(other, ""), arb::duplicate_mechanism);
@@ -599,13 +596,13 @@ TEST(mechcat, import_collisions) {
             auto cat = build_fake_catalogue();
 
             mechanism_catalogue other;
-            other.add("zonkers", fleeb_info);
+            other.add("zonkers", mk_fleeb_info());
             other.derive("fleeb", "zonkers", {{"plugh", 8.}});
-            ASSERT_FALSE(other["fleeb"]==fleeb_info);
+            ASSERT_FALSE(other["fleeb"]==mk_fleeb_info());
 
             ASSERT_FALSE(cat.has("zonkers"));
             EXPECT_THROW(cat.import(other, ""), arb::duplicate_mechanism);
-            EXPECT_EQ(cat["fleeb"], fleeb_info);
+            EXPECT_EQ(cat["fleeb"], mk_fleeb_info());
             EXPECT_FALSE(cat.has("zonkers"));
         }
 
@@ -614,7 +611,7 @@ TEST(mechcat, import_collisions) {
             auto cat = build_fake_catalogue();
 
             mechanism_catalogue other;
-            other.add("zonkers", fleeb_info);
+            other.add("zonkers", mk_fleeb_info());
             other.derive("fleeb2", "zonkers", {{"plugh", 8.}});
 
             auto fleeb2_info = cat["fleeb2"];

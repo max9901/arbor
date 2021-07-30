@@ -104,7 +104,6 @@ public:
 private:
     std::unique_ptr<catalogue_state> state_;
 
-
     std::pair<mechanism_ptr, mechanism_overrides> instance_impl(arb_backend_kind, const std::string&) const;
     void register_impl(arb_backend_kind, const std::string&, mechanism_ptr);
 };
