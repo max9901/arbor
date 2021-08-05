@@ -110,6 +110,11 @@ struct shared_state {
         array data_;
         iarray indices_;
         constraint_partition constraints_;
+        std::vector<arb_value_type>  globals_;
+        std::vector<arb_value_type*> parameters_;
+        std::vector<arb_value_type*> state_vars_;
+        std::vector<arb_ion_state>   ion_states_;
+
     };
 
     unsigned alignment = 1;   // Alignment and padding multiple.
@@ -164,6 +169,8 @@ struct shared_state {
     void instantiate(mechanism&, unsigned, const mechanism_overrides&, const mechanism_layout&);
 
     void set_parameter(mechanism&, const std::string&, const std::vector<arb_value_type>&);
+
+    const arb_value_type* mechanism_state_data(const mechanism&, const std::string&);
 
     void add_ion(
         const std::string& ion_name,

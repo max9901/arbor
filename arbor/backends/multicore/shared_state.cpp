@@ -393,16 +393,62 @@ std::ostream& operator<<(std::ostream& out, const shared_state& s) {
     return out;
 }
 
+namespace {
+template <typename T>
+struct chunk_writer {
+    T* end;
+    const std::size_t stride;
+
+    chunk_writer(T* data, std::size_t stride):
+        end(data), stride(stride) {}
+
+    template <typename Seq>
+    T* append(const Seq& seq, T pad) {
+        auto p = end;
+        copy_extend(seq, util::make_range(p, end+=stride), pad);
+        return p;
+    }
+
+    T* fill(T value) {
+        auto p = end;
+        std::fill(p, end+=stride, value);
+        return p;
+    }
+};
+
+template <typename V>
+std::size_t extend_width(const arb::mechanism& mech, std::size_t width) {
+    // Width has to accommodate mechanism alignment and SIMD width.
+    std::size_t m = std::lcm(mech.data_alignment(), mech.iface_.partition_width*sizeof(V))/sizeof(V);
+    return math::round_up(width, m);
+}
+} // anonymous namespace
+
 void shared_state::set_parameter(mechanism& m, const std::string& key, const std::vector<arb_value_type>& values) {
     if (values.size()!=m.ppack_.width) throw arbor_internal_error("mechanism parameter size mismatch");
-    auto field_ptr = m.field_data(key);
-    if (!field_ptr) throw arbor_internal_error(util::pprintf("no such mechanism parameter '{}'", key));
+
+    arb_value_type* data = nullptr;
+    for (arb_size_type i = 0; i<m.mech_.n_parameters; ++i) {
+        if (key==m.mech_.parameters[i].name) {
+            data = m.ppack_.parameters[i];
+            break;
+        }
+    }
+    if (!data) throw arbor_internal_error(util::pprintf("no such mechanism parameter '{}'", key));
+
     if (!m.ppack_.width) return;
-    copy_extend(values, util::range_n(field_ptr, m.width_padded_), values.back());
+    auto width_padded = extend_width<arb_value_type>(m, m.ppack_.width);
+    copy_extend(values, util::range_n(data, width_padded), values.back());
 }
 
-
-// ion_state methods:
+const arb_value_type* shared_state::mechanism_state_data(const mechanism& m, const std::string& key) {
+    for (arb_size_type i = 0; i<m.mech_.n_state_vars; ++i) {
+        if (key==m.mech_.state_vars[i].name) {
+            return m.ppack_.state_vars[i];
+        }
+    }
+    return nullptr;
+}
 
 // The derived class (typically generated code from modcc) holds pointers that need
 // to be set to point inside the shared state, or into the allocated parameter/variable
@@ -421,51 +467,55 @@ void shared_state::set_parameter(mechanism& m, const std::string& key, const std
 // * For indices in the padded tail of ion index maps, set index to last valid ion index.
 
 void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_overrides& overrides, const mechanism_layout& pos_data) {
-    util::padded_allocator<> pad(alignment);
+
+    // Mechanism indices and data require:
+    // * an alignment that is a multiple of the mechansim data_alignment();
+    // * a size which is a multiple of partition_width() for SIMD access.
+    //
+    // We used the padded_allocator to allocate arrays with the correct alignment, and allocate
+    // sizes that are multiples of a width padded to account for SIMD access and per-vector alignment.
+
+    util::padded_allocator<> pad(m.data_alignment());
 
     // Set internal variables
 
-    m.num_ions_      = m.mech_.n_ions;
     m.time_ptr_ptr   = &time_ptr;
 
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
 
-
-    //Choose to go the gap junction way or the mechanism_layout way:
-    if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
-        m.width_padded_ = math::round_up(pos_data.cv.size(), alignment);      // Extend width to account for requisite SIMD padding.
-        m.ppack_.width              = pos_data.cv.size();
+    if(m.kind() == arb_mechanism_kind_gap_junction){
+        m.ppack_.width            = gap_junctions.size();
     }else{
-        m.width_padded_ = math::round_up(gap_junctions.size(), alignment);    // give the amount of gap junctions as option
-        m.ppack_.width              = gap_junctions.size();
+        m.ppack_.width            = pos_data.cv.size();
     }
 
-    m.ppack_.mechanism_id       = id;
-    m.ppack_.vec_ci             = cv_to_cell.data();
-    m.ppack_.vec_di             = cv_to_intdom.data();
-    m.ppack_.vec_dt             = dt_cv.data();
-    m.ppack_.vec_v              = voltage.data();
-    m.ppack_.vec_i              = current_density.data();
-    m.ppack_.vec_g              = conductivity.data();
-    m.ppack_.temperature_degC   = temperature_degC.data();
-    m.ppack_.diam_um            = diam_um.data();
-    m.ppack_.time_since_spike   = time_since_spike.data();
-    m.ppack_.n_detectors        = n_detector;
-    m.ppack_.events             = {};
-    m.ppack_.vec_t              = nullptr;
+    m.ppack_.mechanism_id     = id;
+    m.ppack_.vec_ci           = cv_to_cell.data();
+    m.ppack_.vec_di           = cv_to_intdom.data();
+    m.ppack_.vec_dt           = dt_cv.data();
+    m.ppack_.vec_v            = voltage.data();
+    m.ppack_.vec_i            = current_density.data();
+    m.ppack_.vec_g            = conductivity.data();
+    m.ppack_.temperature_degC = temperature_degC.data();
+    m.ppack_.diam_um          = diam_um.data();
+    m.ppack_.time_since_spike = time_since_spike.data();
+    m.ppack_.n_detectors      = n_detector;
+    m.ppack_.events           = {};
+    m.ppack_.vec_t            = nullptr;
     m.ppack_.gap_junctions      = gap_junctions.data();
     m.ppack_.gap_junction_width = n_gj;
 
-    auto mult_in_place = !pos_data.multiplicity.empty();
+    bool mult_in_place = !pos_data.multiplicity.empty();
+
 
     if (storage.find(id) != storage.end()) throw arb::arbor_internal_error("Duplicate mech id in shared state");
     auto& store = storage[id];
 
     // Allocate view pointers (except globals!)
-    m.state_vars_.resize(m.mech_.n_state_vars); m.ppack_.state_vars = m.state_vars_.data();
-    m.parameters_.resize(m.mech_.n_parameters); m.ppack_.parameters = m.parameters_.data();
-    m.ion_states_.resize(m.mech_.n_ions);       m.ppack_.ion_states = m.ion_states_.data();
+    store.state_vars_.resize(m.mech_.n_state_vars); m.ppack_.state_vars = store.state_vars_.data();
+    store.parameters_.resize(m.mech_.n_parameters); m.ppack_.parameters = store.parameters_.data();
+    store.ion_states_.resize(m.mech_.n_ions);       m.ppack_.ion_states = store.ion_states_.data();
 
     // Set ion views
     for (auto idx: make_span(m.mech_.n_ions)) {
@@ -479,36 +529,33 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // If there are no sites (is this ever meaningful?) there is nothing more to do.
     if (m.ppack_.width==0) return;
 
-    auto append_chunk = [n=m.width_padded_](const auto& in, auto& out, auto pad, auto& ptr) {
-        copy_extend(in, util::range_n(ptr, n), pad);
-        out = ptr;
-        ptr += n;
-    };
-
-    auto append_const = [n=m.width_padded_](auto in, auto& out, auto& ptr) {
-        std::fill(ptr, ptr + n, in);
-        out = ptr;
-        ptr += n;
-    };
-
     // Initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage
-        auto count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*m.width_padded_ + m.mech_.n_globals;
+        std::size_t value_width_padded = 0;
+        if(m.kind() == arb_mechanism_kind_gap_junction){
+            //todo add padding
+            value_width_padded            = gap_junctions.size();
+        }else{
+            value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
+        }
+
+        std::size_t count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*value_width_padded + m.mech_.n_globals;
         store.data_ = array(count, NAN, pad);
-        auto base_ptr = store.data_.data();
+        chunk_writer writer(store.data_.data(), value_width_padded);
+
         // First sub-array of data_ is used for weight_
-        append_chunk(pos_data.weight, m.ppack_.weight, 0, base_ptr);    //the weight vector is empty for a gap junction mechanism
+        m.ppack_.weight = writer.append(pos_data.weight, 0);
         // Set fields
         for (auto idx: make_span(m.mech_.n_parameters)) {
-            append_const(m.mech_.parameters[idx].default_value, m.ppack_.parameters[idx], base_ptr);
+            m.ppack_.parameters[idx] = writer.fill(m.mech_.parameters[idx].default_value);
         }
         for (auto idx: make_span(m.mech_.n_state_vars)) {
-            append_const(m.mech_.state_vars[idx].default_value, m.ppack_.state_vars[idx], base_ptr);
+            m.ppack_.state_vars[idx] = writer.fill(m.mech_.state_vars[idx].default_value);
         }
 
         // Assign global scalar parameters
-        m.ppack_.globals = base_ptr;
+        m.ppack_.globals = writer.end;
         for (auto idx: make_span(m.mech_.n_globals)) {
             m.ppack_.globals[idx] = m.mech_.globals[idx].default_value;
         }
@@ -523,21 +570,21 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
             }
             if (!found) throw arbor_internal_error(util::pprintf("multicore/mechanism: no such mechanism global '{}'", k));
         }
-        m.globals_ = std::vector<arb_value_type>(m.ppack_.globals, m.ppack_.globals + m.mech_.n_globals);
+        store.globals_ = std::vector<arb_value_type>(m.ppack_.globals, m.ppack_.globals + m.mech_.n_globals);
     }
 
     // Make index bulk storage
     {
         // Allocate bulk storage
-        auto count     = (mult_in_place ? 1 : 0) + m.mech_.n_ions + 1;
-        store.indices_ = iarray(count*m.width_padded_, 0, pad);
-        auto base_ptr  = store.indices_.data();
+        std::size_t index_width_padded = extend_width<arb_index_type>(m, pos_data.cv.size());
+        std::size_t count = mult_in_place + m.mech_.n_ions + 1;
+        store.indices_ = iarray(count*index_width_padded, 0, pad);
+        chunk_writer writer(store.indices_.data(), index_width_padded);
         // Setup node indices
-        if(m.mech_.kind != arb_mechanism_kind_gap_junction) {
-            append_chunk(pos_data.cv, m.ppack_.node_index, pos_data.cv.back(), base_ptr);
-        }
+        m.ppack_.node_index = writer.append(pos_data.cv, pos_data.cv.back());
 
-        auto node_index = util::range_n(m.ppack_.node_index, m.width_padded_);
+        auto node_index = util::range_n(m.ppack_.node_index, index_width_padded);
+
         // Make SIMD index constraints and set the view
         store.constraints_ = make_constraint_partition(node_index, m.ppack_.width, m.iface_.partition_width);
         m.ppack_.index_constraints.contiguous    = store.constraints_.contiguous.data();
@@ -551,19 +598,17 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         // Create ion indices
         for (auto idx: make_span(m.mech_.n_ions)) {
             auto  ion = m.mech_.ions[idx].name;
-            auto& index_ptr = m.ppack_.ion_states[idx].index;
             // Index into shared_state respecting ion rebindings
             auto ion_binding = value_by_key(overrides.ion_rebind, ion).value_or(ion);
             ion_state* oion = ptr_by_key(ion_data, ion_binding);
             if (!oion) throw arbor_internal_error(util::pprintf("multicore/mechanism: mechanism holds ion '{}' with no corresponding shared state ", ion));
             // Obtain index and move data
             auto indices = util::index_into(node_index, oion->node_index_);
-            append_chunk(indices, index_ptr, util::back(indices), base_ptr);
+            m.ppack_.ion_states[idx].index = writer.append(indices, util::back(indices));
             // Check SIMD constraints
-            auto ion_index = util::range_n(index_ptr, m.width_padded_);
-            arb_assert(compatible_index_constraints(node_index, ion_index, m.iface_.partition_width));
+            arb_assert(compatible_index_constraints(node_index, util::range_n(m.ppack_.ion_states[idx].index, index_width_padded), m.iface_.partition_width));
         }
-        if (mult_in_place) append_chunk(pos_data.multiplicity, m.ppack_.multiplicity, 0, base_ptr);
+        if (mult_in_place) m.ppack_.multiplicity = writer.append(pos_data.multiplicity, 0);
     }
 }
 

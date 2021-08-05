@@ -7,7 +7,7 @@
 #include <arbor/mechanism_abi.h>
 
 namespace arb::IOU_catalogue::kernel_adex {
-    static constexpr unsigned simd_width_ = 0;
+    static constexpr unsigned simd_width_ = 1;
 
 #define S(x) std::cout << #x << "\t\t" << x << std::endl;
 
@@ -104,7 +104,7 @@ namespace arb::IOU_catalogue::kernel_adex {
     }
     static void write_ions(arb_mechanism_ppack* pp) {
     }
-    static void apply_events(arb_mechanism_ppack*pp) {
+    static void apply_events(arb_mechanism_ppack*, arb_deliverable_event_stream*) {
     }
     static void post_event(arb_mechanism_ppack*pp) {
     }
@@ -120,7 +120,7 @@ arb_mechanism_interface* make_arb_IOU_catalogue_adex_interface_multicore() {
     result.alignment=1;
     result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_adex::init;
     result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_adex::compute_currents;
-    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_adex::apply_events;
+    result.apply_events    = (arb_mechanism_method_events)arb::IOU_catalogue::kernel_adex::apply_events;
     result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_adex::advance_state;
     result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_adex::write_ions;
     result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_adex::post_event;

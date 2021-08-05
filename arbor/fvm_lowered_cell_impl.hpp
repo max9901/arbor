@@ -499,7 +499,8 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     }
 
     // Create shared cell state.
-    // (SIMD padding requires us to check each mechanism for alignment/padding constraints.)
+    // Shared state vectors should accommodate each mechanism's data alignment requests.
+
     unsigned data_alignment = util::max_value(
         util::transform_view(keys(mech_data.mechanisms),
             [&](const std::string& name) { return mech_instance(name).mech->data_alignment(); }));
@@ -593,6 +594,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
                 layout.weight[i] = config.norm_area[i];
             }
             break;
+
         case arb_mechanism_kind_gap_junction:
             // Current density contributions from mechanism are already in [A/m²].
             //Trow error ! should not be in here
@@ -602,6 +604,7 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
                 layout.weight[i] = config.norm_area[i];
             }
             break;
+
         case arb_mechanism_kind_reversal_potential:
             // Mechanisms that set reversal potential should not be contributing
             // to any currents, so leave weights as zero.
@@ -772,7 +775,7 @@ struct probe_resolution_data {
         mechanism* m = util::value_by_key(mech_instance_by_name, name).value_or(nullptr);
         if (!m) return nullptr;
 
-        const fvm_value_type* data = Backend::mechanism_field_data(m, state_var);
+        const fvm_value_type* data = state->mechanism_state_data(*m, state_var);
         if (!data) throw cable_cell_error("no state variable '"+state_var+"' in mechanism '"+name+"'");
 
         return data;

@@ -39,7 +39,7 @@ void mechanism_cx36_gj_gpu_compute_currents_(arb_mechanism_ppack* p) {
 void mechanism_cx36_gj_gpu_advance_state_(arb_mechanism_ppack*) {}
 void mechanism_cx36_gj_gpu_write_ions_(arb_mechanism_ppack*) {}
 void mechanism_cx36_gj_gpu_post_event_(arb_mechanism_ppack*) {}
-void mechanism_cx36_gj_gpu_apply_events_(arb_mechanism_ppack*) {}
+void mechanism_cx36_gj_gpu_apply_events_(arb_mechanism_ppack*, arb_deliverable_event_stream*) {}
 
 } // namespace IOU_catalogue
 } // namespace arb

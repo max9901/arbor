@@ -133,7 +133,7 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
     bool with_simd = opt.simd.abi!=simd_spec::none;
 
     options_trace_codegen = opt.trace_codegen;
-    
+
     // init_api, state_api, current_api methods are mandatory:
 
     assert_has_scope(init_api, "init");
@@ -153,11 +153,11 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
             region_name += std::regex_replace(name, invalid_profile_chars, "");
 
             return
-                "{\n"
-                "    static auto id = ::arb::profile::profiler_region_id(\""
-                + region_name + "\");\n"
-                "    ::arb::profile::profiler_enter(id);\n"
-                "}\n";
+                    "{\n"
+                    "    static auto id = ::arb::profile::profiler_region_id(\""
+                    + region_name + "\");\n"
+                                    "    ::arb::profile::profiler_enter(id);\n"
+                                    "}\n";
         }
         else return "";
     };
@@ -175,10 +175,10 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
         "#include <cstddef>\n"
         "#include <memory>\n"
         "#include <"  << arb_header_prefix() << "mechanism_abi.h>\n"
-        "#include <" << arb_header_prefix() << "math.hpp>\n";
+                                                "#include <" << arb_header_prefix() << "math.hpp>\n";
 
     opt.profile &&
-        out << "#include <" << arb_header_prefix() << "profile/profiler.hpp>\n";
+    out << "#include <" << arb_header_prefix() << "profile/profiler.hpp>\n";
 
     if (with_simd) {
         out << "#include <" << arb_header_prefix() << "simd/simd.hpp>\n";
@@ -190,17 +190,17 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
         << namespace_declaration_open(ns_components)
         << "namespace " << namespace_name << " {\n"
         << "\n"
-        "using ::arb::math::exprelr;\n"
-        "using ::arb::math::safeinv;\n"
-        "using ::std::abs;\n"
-        "using ::std::cos;\n"
-        "using ::std::exp;\n"
-        "using ::std::log;\n"
-        "using ::std::max;\n"
-        "using ::std::min;\n"
-        "using ::std::pow;\n"
-        "using ::std::sin;\n"
-        "\n";
+           "using ::arb::math::exprelr;\n"
+           "using ::arb::math::safeinv;\n"
+           "using ::std::abs;\n"
+           "using ::std::cos;\n"
+           "using ::std::exp;\n"
+           "using ::std::log;\n"
+           "using ::std::max;\n"
+           "using ::std::min;\n"
+           "using ::std::pow;\n"
+           "using ::std::sin;\n"
+           "\n";
 
     if (with_simd) {
         out <<
@@ -226,30 +226,32 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
 
         std::string abi = "S::simd_abi::";
         switch (opt.simd.abi) {
-        case simd_spec::avx:    abi += "avx";    break;
-        case simd_spec::avx2:   abi += "avx2";   break;
-        case simd_spec::avx512: abi += "avx512"; break;
-        case simd_spec::neon:   abi += "neon";   break;
-        case simd_spec::sve:    abi += "sve";    break;
-        case simd_spec::native: abi += "native"; break;
-        default:
-            abi += "default_abi"; break;
+            case simd_spec::avx:    abi += "avx";    break;
+            case simd_spec::avx2:   abi += "avx2";   break;
+            case simd_spec::avx512: abi += "avx512"; break;
+            case simd_spec::neon:   abi += "neon";   break;
+            case simd_spec::sve:    abi += "sve";    break;
+            case simd_spec::native: abi += "native"; break;
+            default:
+                abi += "default_abi"; break;
         }
 
         out <<
             "using simd_value = S::simd<arb_value_type, vector_length_, " << abi << ">;\n"
-            "using simd_index = S::simd<arb_index_type, vector_length_, " << abi << ">;\n"
-            "using simd_mask  = S::simd_mask<arb_value_type, vector_length_, "<< abi << ">;\n"
-            "\n"
-            "inline simd_value safeinv(simd_value x) {\n"
-            "    simd_value ones = simd_cast<simd_value>(1.0);\n"
-            "    auto mask = S::cmp_eq(S::add(x,ones), ones);\n"
-            "    S::where(mask, x) = simd_cast<simd_value>(DBL_EPSILON);\n"
-            "    return S::div(ones, x);\n"
-            "}\n"
-            "\n";
+                                                                                    "using simd_index = S::simd<arb_index_type, vector_length_, " << abi << ">;\n"
+                                                                                                                                                            "using simd_mask  = S::simd_mask<arb_value_type, vector_length_, "<< abi << ">;\n"
+                                                                                                                                                                                                                                        "static constexpr unsigned min_align_ = std::max(S::min_align(simd_value{}), S::min_align(simd_index{}));\n"
+                                                                                                                                                                                                                                        "\n"
+                                                                                                                                                                                                                                        "inline simd_value safeinv(simd_value x) {\n"
+                                                                                                                                                                                                                                        "    simd_value ones = simd_cast<simd_value>(1.0);\n"
+                                                                                                                                                                                                                                        "    auto mask = S::cmp_eq(S::add(x,ones), ones);\n"
+                                                                                                                                                                                                                                        "    S::where(mask, x) = simd_cast<simd_value>(DBL_EPSILON);\n"
+                                                                                                                                                                                                                                        "    return S::div(ones, x);\n"
+                                                                                                                                                                                                                                        "}\n"
+                                                                                                                                                                                                                                        "\n";
     } else {
-        out << "static constexpr unsigned simd_width_ = 0;\n\n";
+        out << "static constexpr unsigned simd_width_ = 1;\n"
+               "static constexpr unsigned min_align_ = std::max(alignof(arb_value_type), alignof(arb_index_type));\n\n";
     }
 
     // Make implementations
@@ -354,12 +356,12 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
     out << popindent << "}\n\n";
 
     if (net_receive_api) {
-        out << fmt::format(FMT_COMPILE("static void apply_events(arb_mechanism_ppack* pp) {{\n"
+        out << fmt::format(FMT_COMPILE("static void apply_events(arb_mechanism_ppack* pp, arb_deliverable_event_stream* stream_ptr) {{\n"
                                        "    PPACK_IFACE_BLOCK;\n"
-                                       "    auto ncell = {0}events.n_streams;\n"
+                                       "    auto ncell = stream_ptr->n_streams;\n"
                                        "    for (arb_size_type c = 0; c<ncell; ++c) {{\n"
-                                       "        auto begin  = {0}events.events + {0}events.begin[c];\n"
-                                       "        auto end    = {0}events.events + {0}events.end[c];\n"
+                                       "        auto begin  = stream_ptr->events + stream_ptr->begin[c];\n"
+                                       "        auto end    = stream_ptr->events + stream_ptr->end[c];\n"
                                        "        for (auto p = begin; p<end; ++p) {{\n"
                                        "            auto i_     = p->mech_index;\n"
                                        "            auto {1} = p->weight;\n"
@@ -370,7 +372,7 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
         emit_api_body(out, net_receive_api, false, false);
         out << popindent << "}\n" << popindent << "}\n" << popindent << "}\n" << popindent << "}\n\n";
     } else {
-        out << "static void apply_events(arb_mechanism_ppack*) {}\n\n";
+        out << "static void apply_events(arb_mechanism_ppack*, arb_deliverable_event_stream*) {}\n\n";
     }
 
     if(post_event_api) {
@@ -438,14 +440,14 @@ std::string emit_cpp_source(const Module& module_, const printer_options& opt) {
                                    "  arb_mechanism_interface* make_{0}_{1}_interface_multicore() {{\n"
                                    "    static arb_mechanism_interface result;\n"
                                    "    result.partition_width = {3}simd_width_;\n"
-                                   "    result.backend={2};\n"
-                                   "    result.alignment=1;\n"
-                                   "    result.init_mechanism=(arb_mechanism_method){3}init;\n"
-                                   "    result.compute_currents=(arb_mechanism_method){3}compute_currents;\n"
-                                   "    result.apply_events=(arb_mechanism_method){3}apply_events;\n"
-                                   "    result.advance_state=(arb_mechanism_method){3}advance_state;\n"
-                                   "    result.write_ions=(arb_mechanism_method){3}write_ions;\n"
-                                   "    result.post_event=(arb_mechanism_method){3}post_event;\n"
+                                   "    result.backend = {2};\n"
+                                   "    result.alignment = {3}min_align_;\n"
+                                   "    result.init_mechanism = {3}init;\n"
+                                   "    result.compute_currents = {3}compute_currents;\n"
+                                   "    result.apply_events = {3}apply_events;\n"
+                                   "    result.advance_state = {3}advance_state;\n"
+                                   "    result.write_ions = {3}write_ions;\n"
+                                   "    result.post_event = {3}post_event;\n"
                                    "    return &result;\n"
                                    "  }}"
                                    "}}\n\n"),
@@ -511,7 +513,7 @@ static std::string index_i_name(const std::string& index_var) {
 }
 
 void emit_procedure_proto(std::ostream& out, ProcedureExpression* e, const std::string& ppack_name, const std::string& qualified) {
-    out << "static void " << qualified << (qualified.empty()? "": "::") << e->name() << "(" << ppack_name << "* pp, int i_";
+    out << "[[maybe_unused]] static void " << qualified << (qualified.empty()? "": "::") << e->name() << "(" << ppack_name << "* pp, int i_";
     for (auto& arg: e->args()) {
         out << ", arb_value_type " << arg->is_argument()->name();
     }
@@ -602,7 +604,7 @@ void emit_api_body(std::ostream& out, APIMethod* method, bool cv_loop, bool ppac
     if (!body->statements().empty()) {
         ppack_iface && out << "PPACK_IFACE_BLOCK;\n";
         cv_loop && out << fmt::format("for (arb_size_type i_ = 0; i_ < {}width; ++i_) {{\n", pp_var_pfx)
-                        << indent;
+                       << indent;
         for (auto index: indices) {
             out << "auto " << source_index_i_name(index) << " = " << source_var(index) << "[" << index.index_name << "];\n";
         }
@@ -653,7 +655,7 @@ void SimdPrinter::visit(AssignmentExpression* e) {
     }
 
     Symbol* lhs = e->lhs()->is_identifier()->symbol();
- 
+
     bool cast = false;
     if (auto id = e->rhs()->is_identifier()) {
         if (scalars_.count(id->name())) cast = true;
@@ -738,7 +740,7 @@ void SimdPrinter::visit(BlockExpression* block) {
 
 void emit_simd_procedure_proto(std::ostream& out, ProcedureExpression* e, const std::string& ppack_name, const std::string& qualified) {
     ENTER(out);
-    out << "static void " << qualified << (qualified.empty()? "": "::") << e->name() << "(arb_mechanism_ppack* pp, arb_index_type i_";
+    out << "[[maybe_unused]] static void " << qualified << (qualified.empty()? "": "::") << e->name() << "(arb_mechanism_ppack* pp, arb_index_type i_";
     for (auto& arg: e->args()) {
         out << ", const simd_value& " << arg->is_argument()->name();
     }
@@ -748,8 +750,8 @@ void emit_simd_procedure_proto(std::ostream& out, ProcedureExpression* e, const 
 
 void emit_masked_simd_procedure_proto(std::ostream& out, ProcedureExpression* e, const std::string& ppack_name, const std::string& qualified) {
     ENTER(out);
-    out << "static void " << qualified << (qualified.empty()? "": "::") << e->name()
-    << "(arb_mechanism_ppack* pp, arb_index_type i_, simd_mask mask_input_";
+    out << "[[maybe_unused]] static void " << qualified << (qualified.empty()? "": "::") << e->name()
+        << "(arb_mechanism_ppack* pp, arb_index_type i_, simd_mask mask_input_";
     for (auto& arg: e->args()) {
         out << ", const simd_value& " << arg->is_argument()->name();
     }
@@ -950,12 +952,12 @@ void emit_simd_body_for_loop(
 }
 
 void emit_simd_for_loop_per_constraint(std::ostream& out, BlockExpression* body,
-                                  const std::vector<LocalVariable*>& indexed_vars,
-                                  const std::vector<VariableExpression*>& scalars,
-                                  bool requires_weight,
-                                  const std::list<index_prop>& indices,
-                                  const simd_expr_constraint& constraint,
-                                  std::string underlying_constraint_name) {
+                                       const std::vector<LocalVariable*>& indexed_vars,
+                                       const std::vector<VariableExpression*>& scalars,
+                                       bool requires_weight,
+                                       const std::list<index_prop>& indices,
+                                       const simd_expr_constraint& constraint,
+                                       std::string underlying_constraint_name) {
     ENTER(out);
     out << fmt::format("constraint_category_ = index_constraint::{1};\n"
                        "for (auto i_ = 0ul; i_ < {0}index_constraints.n_{1}; i_++) {{\n"

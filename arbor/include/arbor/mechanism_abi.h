@@ -1,8 +1,8 @@
 #ifndef ARB_MECH_ABI
 #define ARB_MECH_ABI
 
-#include <arbor/arb_types.h>
 #include <arbor/fvm_types.hpp>
+#include <arbor/arb_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +12,7 @@ extern "C" {
 #define ARB_MECH_ABI_VERSION_MAJOR 0
 #define ARB_MECH_ABI_VERSION_MINOR 0
 #define ARB_MECH_ABI_VERSION_PATCH 1
-#define ARB_MECH_ABI_VERSION ((ARB_MECH_ABI_VERSION_MAJOR * 10000 * 10000) + (ARB_MECH_ABI_VERSION_MAJOR * 10000) + ARB_MECH_ABI_VERSION_PATCH)
+#define ARB_MECH_ABI_VERSION ((ARB_MECH_ABI_VERSION_MAJOR * 10000L * 10000L) + (ARB_MECH_ABI_VERSION_MAJOR * 10000L) + ARB_MECH_ABI_VERSION_PATCH)
 
 typedef const char* arb_mechanism_fingerprint;
 
@@ -23,6 +23,7 @@ typedef uint32_t arb_mechanism_kind;
 #define arb_mechanism_kind_density 2
 #define arb_mechanism_kind_reversal_potential 3
 #define arb_mechanism_kind_gap_junction 4
+
 
 typedef uint32_t arb_backend_kind;
 #define arb_backend_kind_nil 0
@@ -41,8 +42,8 @@ typedef struct arb_ion_state {
 
 // Event; consumed by `apply_event`
 typedef struct arb_deliverable_event_data {
-    arb_size_type   mech_id;       // mechanism type identifier (per cell group).
-    arb_size_type   mech_index;    // instance of the mechanism
+    arb_size_type   mech_id;       // Mechanism type identifier (per cell group).
+    arb_size_type   mech_index;    // Instance of the mechanism.
     arb_weight_type weight;
 } arb_deliverable_event_data;
 
@@ -51,10 +52,10 @@ typedef struct arb_deliverable_event_data {
  * are meant to be consumed
  */
 typedef struct arb_deliverable_event_stream {
-    arb_size_type                     n_streams; // number of streams
-    const arb_deliverable_event_data* events;    // array of event data items
-    const arb_index_type*             begin;     // array of offsets to beginning of marked events
-    const arb_index_type*             end;       // array of offsets to end of marked events
+    arb_size_type                     n_streams; // Number of streams.
+    const arb_deliverable_event_data* events;    // Array of event data items.
+    const arb_index_type*             begin;     // Array of offsets to beginning of marked events.
+    const arb_index_type*             end;       // Array of offsets to end of marked events.
 }  arb_deliverable_event_stream;
 
 // Constraints for use in SIMD implementations, see there.
@@ -71,8 +72,8 @@ typedef struct arb_constraint_partition {
 
 // Parameter Pack
 typedef struct arb_mechanism_ppack {
-    arb_size_type   width;                           // Number of CVs
-    arb_index_type  n_detectors;                     // Number of spike detectors
+    arb_size_type  width;                        // Number of CVs.
+    arb_index_type  n_detectors;                 // Number of spike detectors.
     arb_index_type* vec_ci;
     arb_index_type* vec_di;
     const arb_value_type* vec_t;
@@ -88,13 +89,13 @@ typedef struct arb_mechanism_ppack {
     arb_value_type* weight;
     arb_size_type   mechanism_id;
 
-    arb_deliverable_event_stream events;            // Events during the last period
+    arb_deliverable_event_stream events;            // Events during the last period.
     arb_constraint_partition     index_constraints; // Index restrictions, not initialised for all backend.
 
-    arb_value_type** parameters;                    // Array of setable parameters     (Array)
-    arb_value_type** state_vars;                    // Array of integrable state       (Array)
-    arb_value_type*  globals;                       // Array of global constant state  (Scalar)
-    arb_ion_state*   ion_states;                    // Array of views into shared state
+    arb_value_type** parameters;                    // Array of setable parameters.    (Array)
+    arb_value_type** state_vars;                    // Array of integrable state.      (Array)
+    arb_value_type*  globals;                       // Array of global constant state. (Scalar)
+    arb_ion_state*   ion_states;                    // Array of views into shared state.
 
     arb_size_type   gap_junction_width;             // Number of gap Junctions
     arb::fvm_gap_junction* gap_junctions;           // Array of view into the gap junction vector
@@ -110,6 +111,7 @@ typedef struct arb_mechanism_ppack {
  * by the library. Plugins should never allocate memory on their own.
  */
 typedef void (*arb_mechanism_method)(arb_mechanism_ppack*); // Convenience for extension methods
+typedef void (*arb_mechanism_method_events)(arb_mechanism_ppack*, arb_deliverable_event_stream*);
 
 typedef struct arb_mechanism_interface {
     arb_backend_kind   backend;               // GPU, CPU, ...
@@ -141,7 +143,8 @@ typedef struct arb_mechanism_interface {
      * - `deliverable_events` is setup correctly externally, is read-only for apply events
      * - called during each integration time step, right after resetting currents
      */
-    arb_mechanism_method apply_events;
+
+    arb_mechanism_method_events apply_events;
     /* 4. advanced_state
      * - called during each integration time step, after solving Hines matrices
      * - perform integration on state variables, often given as an ODE

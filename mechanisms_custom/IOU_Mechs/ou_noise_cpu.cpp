@@ -8,7 +8,7 @@
 #include <Random123/boxmuller.hpp>
 
 namespace arb::IOU_catalogue::kernel_ou_noise {
-static constexpr unsigned simd_width_ = 0;
+static constexpr unsigned simd_width_ = 1;
 
 #define PPACK_IFACE_BLOCK \
 [[maybe_unused]] auto  _pp_var_width             = pp->width;\
@@ -73,7 +73,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
 
 static void advance_state(arb_mechanism_ppack* pp) {}
 static void write_ions(arb_mechanism_ppack* pp) {}
-static void apply_events(arb_mechanism_ppack*) {}
+static void apply_events(arb_mechanism_ppack*, arb_deliverable_event_stream*) {}
 static void post_event(arb_mechanism_ppack*) {}
 
 #undef PPACK_IFACE_BLOCK
@@ -87,7 +87,7 @@ extern "C" {
     result.alignment=1;
     result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_ou_noise::init;
     result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_ou_noise::compute_currents;
-    result.apply_events    = (arb_mechanism_method)arb::IOU_catalogue::kernel_ou_noise::apply_events;
+    result.apply_events    = (arb_mechanism_method_events)arb::IOU_catalogue::kernel_ou_noise::apply_events;
     result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_ou_noise::advance_state;
     result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_ou_noise::write_ions;
     result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_ou_noise::post_event;
