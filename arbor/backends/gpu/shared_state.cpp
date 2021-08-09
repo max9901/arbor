@@ -245,7 +245,6 @@ struct chunk_writer {
 
 void shared_state::set_parameter(mechanism& m, const std::string& key, const std::vector<arb_value_type>& values) {
     if (values.size()!=m.ppack_.width) throw arbor_internal_error("mechanism parameter size mismatch");
-
     const auto& store = storage.at(m.mechanism_id());
 
     arb_value_type* data = nullptr;
@@ -305,6 +304,7 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
     m.ppack_.gap_junctions      = gap_junctions.data();
     m.ppack_.gap_junction_width = gap_junctions.size();
 
+
     if (storage.find(id) != storage.end()) throw arb::arbor_internal_error("Duplicate mech id in shared state");
     auto& store = storage[id];
 
@@ -313,7 +313,6 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
     store.parameters_ = std::vector<arb_value_type*>(m.mech_.n_parameters);
     store.ion_states_ = std::vector<arb_ion_state>(m.mech_.n_ions);
     store.globals_    = std::vector<arb_value_type>(m.mech_.n_globals);
-
 
     // Set ion views
     for (auto idx: make_span(m.mech_.n_ions)) {
@@ -330,7 +329,6 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
     // Allocate and initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage
-
         std::size_t count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*width_padded + m.mech_.n_globals;
         store.data_   = array(count, NAN);
         chunk_writer writer(store.data_.data(), width);
@@ -346,7 +344,6 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
         }
         // Assign global scalar parameters. NB: Last chunk, since it breaks the width striding.
         for (auto idx: make_span(m.mech_.n_globals)) store.globals_[idx] = m.mech_.globals[idx].default_value;
-
         for (auto& [k, v]: overrides.globals) {
             auto found = false;
             for (auto idx: make_span(m.mech_.n_globals)) {
@@ -358,9 +355,7 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
             }
             if (!found) throw arbor_internal_error(util::pprintf("gpu/mechanism: no such mechanism global '{}'", k));
         }
-
         m.ppack_.globals = writer.append_freely(store.globals_);
-
     }
 
     // Allocate and initialize index vectors, viz. node_index_ and any ion indices.

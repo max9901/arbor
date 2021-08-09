@@ -113,6 +113,7 @@ struct shared_state {
     };
 
     static constexpr std::size_t alignment = std::max(array::alignment(), iarray::alignment());
+
     fvm_size_type n_intdom = 0;   // Number of distinct integration domains.
     fvm_size_type n_detector = 0; // Max number of detectors on all cells.
     fvm_size_type n_cv = 0;       // Total number of CVs.

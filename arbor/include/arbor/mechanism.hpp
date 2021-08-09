@@ -51,7 +51,6 @@ public:
 
     // Make a new object of the mechanism type, but does not copy any state, so
     // the result must be instantiated.
-
     mechanism_ptr clone() const { return std::make_unique<mechanism>(mech_, iface_); }
 
     // Non-global parameters can be set post-instantiation:
