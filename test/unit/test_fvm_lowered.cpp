@@ -242,8 +242,8 @@ TEST(fvm_lowered, target_handles) {
     arb::execution_context context(resources);
 
     cable_cell_description descriptions[] = {
-        make_cell_ball_and_stick(),
-        make_cell_ball_and_3stick()
+            make_cell_ball_and_stick(),
+            make_cell_ball_and_3stick()
     };
 
     // (in increasing target order)
@@ -493,6 +493,7 @@ TEST(fvm_lowered, derived_mechs) {
         for (auto& mech: fvcell.*private_mechanisms_ptr) {
             ASSERT_TRUE(mech);
             EXPECT_EQ("test_kin1"s, mech->internal_name());
+
             tau_values.push_back(mechanism_global(mech, "tau"));
         }
         util::sort(tau_values);
@@ -507,12 +508,12 @@ TEST(fvm_lowered, derived_mechs) {
         std::vector<double> samples[3];
 
         sampler_function sampler =
-            [&](probe_metadata pm, std::size_t n, const sample_record* records) {
-                for (std::size_t i = 0; i<n; ++i) {
-                    double v = *util::any_cast<const double*>(records[i].data);
-                    samples[pm.id.gid].push_back(v);
-                }
-            };
+                [&](probe_metadata pm, std::size_t n, const sample_record* records) {
+                    for (std::size_t i = 0; i<n; ++i) {
+                        double v = *util::any_cast<const double*>(records[i].data);
+                        samples[pm.id.gid].push_back(v);
+                    }
+                };
 
         float times[] = {10.f, 20.f};
 
@@ -945,26 +946,26 @@ TEST(fvm_lowered, gj_coords_complex) {
         std::vector<arb::gap_junction_connection> gap_junctions_on(cell_gid_type gid) const override{
             std::vector<gap_junction_connection> conns;
             switch (gid) {
-            case 0:
-                return {
-                    gap_junction_connection({2, "gj0", lid_selection_policy::assert_univalent}, {"gj1", lid_selection_policy::assert_univalent}, 0.01),
-                    gap_junction_connection({1, "gj0", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.03),
-                    gap_junction_connection({1, "gj1", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.04)
-                };
-            case 1:
-                return {
-                    gap_junction_connection({0, "gj0", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.03),
-                    gap_junction_connection({0, "gj0", lid_selection_policy::assert_univalent}, {"gj1", lid_selection_policy::assert_univalent}, 0.04),
-                    gap_junction_connection({2, "gj1", lid_selection_policy::assert_univalent}, {"gj2", lid_selection_policy::assert_univalent}, 0.02),
-                    gap_junction_connection({2, "gj2", lid_selection_policy::assert_univalent}, {"gj3", lid_selection_policy::assert_univalent}, 0.01)
-                };
-            case 2:
-                return {
-                    gap_junction_connection({0, "gj1", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.01),
-                    gap_junction_connection({1, "gj2", lid_selection_policy::assert_univalent}, {"gj1", lid_selection_policy::assert_univalent}, 0.02),
-                    gap_junction_connection({1, "gj3", lid_selection_policy::assert_univalent}, {"gj2", lid_selection_policy::assert_univalent}, 0.01)
-                };
-            default : return {};
+                case 0:
+                    return {
+                            gap_junction_connection({2, "gj0", lid_selection_policy::assert_univalent}, {"gj1", lid_selection_policy::assert_univalent}, 0.01),
+                            gap_junction_connection({1, "gj0", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.03),
+                            gap_junction_connection({1, "gj1", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.04)
+                    };
+                case 1:
+                    return {
+                            gap_junction_connection({0, "gj0", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.03),
+                            gap_junction_connection({0, "gj0", lid_selection_policy::assert_univalent}, {"gj1", lid_selection_policy::assert_univalent}, 0.04),
+                            gap_junction_connection({2, "gj1", lid_selection_policy::assert_univalent}, {"gj2", lid_selection_policy::assert_univalent}, 0.02),
+                            gap_junction_connection({2, "gj2", lid_selection_policy::assert_univalent}, {"gj3", lid_selection_policy::assert_univalent}, 0.01)
+                    };
+                case 2:
+                    return {
+                            gap_junction_connection({0, "gj1", lid_selection_policy::assert_univalent}, {"gj0", lid_selection_policy::assert_univalent}, 0.01),
+                            gap_junction_connection({1, "gj2", lid_selection_policy::assert_univalent}, {"gj1", lid_selection_policy::assert_univalent}, 0.02),
+                            gap_junction_connection({1, "gj3", lid_selection_policy::assert_univalent}, {"gj2", lid_selection_policy::assert_univalent}, 0.01)
+                    };
+                default : return {};
             }
             return conns;
         }
@@ -1043,16 +1044,16 @@ TEST(fvm_lowered, gj_coords_complex) {
     };
 
     std::vector<fvm_gap_junction> expected = {
-        {{c0_gj_cv[0], c1_gj_cv[0]}, weight(0.03, c0_gj_cv[0])},
-        {{c0_gj_cv[0], c1_gj_cv[1]}, weight(0.04, c0_gj_cv[0])},
-        {{c0_gj_cv[1], c2_gj_cv[0]}, weight(0.01, c0_gj_cv[1])},
-        {{c1_gj_cv[0], c0_gj_cv[0]}, weight(0.03, c1_gj_cv[0])},
-        {{c1_gj_cv[1], c0_gj_cv[0]}, weight(0.04, c1_gj_cv[1])},
-        {{c1_gj_cv[2], c2_gj_cv[1]}, weight(0.02, c1_gj_cv[2])},
-        {{c1_gj_cv[3], c2_gj_cv[2]}, weight(0.01, c1_gj_cv[3])},
-        {{c2_gj_cv[0], c0_gj_cv[1]}, weight(0.01, c2_gj_cv[0])},
-        {{c2_gj_cv[1], c1_gj_cv[2]}, weight(0.02, c2_gj_cv[1])},
-        {{c2_gj_cv[2], c1_gj_cv[3]}, weight(0.01, c2_gj_cv[2])}
+            {{c0_gj_cv[0], c1_gj_cv[0]}, weight(0.03, c0_gj_cv[0])},
+            {{c0_gj_cv[0], c1_gj_cv[1]}, weight(0.04, c0_gj_cv[0])},
+            {{c0_gj_cv[1], c2_gj_cv[0]}, weight(0.01, c0_gj_cv[1])},
+            {{c1_gj_cv[0], c0_gj_cv[0]}, weight(0.03, c1_gj_cv[0])},
+            {{c1_gj_cv[1], c0_gj_cv[0]}, weight(0.04, c1_gj_cv[1])},
+            {{c1_gj_cv[2], c2_gj_cv[1]}, weight(0.02, c1_gj_cv[2])},
+            {{c1_gj_cv[3], c2_gj_cv[2]}, weight(0.01, c1_gj_cv[3])},
+            {{c2_gj_cv[0], c0_gj_cv[1]}, weight(0.01, c2_gj_cv[0])},
+            {{c2_gj_cv[1], c1_gj_cv[2]}, weight(0.02, c2_gj_cv[1])},
+            {{c2_gj_cv[2], c1_gj_cv[3]}, weight(0.01, c2_gj_cv[2])}
     };
 
     using util::sort_by;
@@ -1100,9 +1101,9 @@ TEST(fvm_lowered, cell_group_gj) {
                 auto next_cell = gid == 8 ? 0 : (gid == 18 ? 10 : gid + 2);
                 auto prev_cell = gid == 0 ? 8 : (gid == 10 ? 18 : gid - 2);
                 conns.push_back(gap_junction_connection({next_cell, "gj", lid_selection_policy::assert_univalent},
-                                                             {"gj", lid_selection_policy::assert_univalent}, 0.03));
+                                                        {"gj", lid_selection_policy::assert_univalent}, 0.03));
                 conns.push_back(gap_junction_connection({prev_cell, "gj", lid_selection_policy::assert_univalent},
-                                                             {"gj", lid_selection_policy::assert_univalent}, 0.03));
+                                                        {"gj", lid_selection_policy::assert_univalent}, 0.03));
             }
             return conns;
         }
@@ -1420,10 +1421,10 @@ TEST(fvm_lowered, label_data) {
         std::vector<cell_size_type> expected_sizes = {2, 0, 0, 2, 0, 0, 2, 0, 0, 2};
         std::vector<std::pair<cell_tag_type, lid_range>> expected_labeled_ranges, actual_labeled_ranges;
         expected_labeled_ranges = {
-            {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}},
-            {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}},
-            {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}},
-            {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}}
+                {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}},
+                {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}},
+                {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}},
+                {"1_synapse",  {4, 5}}, {"4_synapses", {0, 4}}
         };
 
         EXPECT_EQ(clg.gids, gids);
@@ -1449,16 +1450,16 @@ TEST(fvm_lowered, label_data) {
         std::vector<cell_size_type> expected_sizes = {1, 2, 2, 1, 2, 2, 1, 2, 2, 1};
         std::vector<std::pair<cell_tag_type, lid_range>> expected_labeled_ranges, actual_labeled_ranges;
         expected_labeled_ranges = {
-            {"1_detector",  {0, 1}},
-            {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
-            {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
-            {"1_detector",  {0, 1}},
-            {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
-            {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
-            {"1_detector",  {0, 1}},
-            {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
-            {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
-            {"1_detector",  {0, 1}}
+                {"1_detector",  {0, 1}},
+                {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
+                {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
+                {"1_detector",  {0, 1}},
+                {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
+                {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
+                {"1_detector",  {0, 1}},
+                {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
+                {"2_detectors", {3, 5}}, {"3_detectors", {0, 3}},
+                {"1_detector",  {0, 1}}
         };
 
         EXPECT_EQ(clg.gids, gids);
@@ -1484,12 +1485,12 @@ TEST(fvm_lowered, label_data) {
         std::vector<cell_size_type> expected_sizes = {0, 2, 2, 0, 2, 2, 0, 2, 2, 0};
         std::vector<std::pair<cell_tag_type, lid_range>> expected_labeled_ranges, actual_labeled_ranges;
         expected_labeled_ranges = {
-            {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
-            {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
-            {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
-            {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
-            {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
-            {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
+                {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
+                {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
+                {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
+                {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
+                {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
+                {"1_gap_junction",  {2, 3}}, {"2_gap_junctions", {0, 2}},
         };
 
         EXPECT_EQ(clg.gids, gids);

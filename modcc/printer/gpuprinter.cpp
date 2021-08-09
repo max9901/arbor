@@ -61,7 +61,6 @@ std::string emit_gpu_cpp_source(const Module& module_, const printer_options& op
                        "void {0}_compute_currents_(arb_mechanism_ppack*);\n"
                        "void {0}_write_ions_(arb_mechanism_ppack*);\n"
                        "void {0}_apply_events_(arb_mechanism_ppack*, arb_deliverable_event_stream*);\n"
-
                        "void {0}_post_event_(arb_mechanism_ppack*);\n\n",
                        class_name)
         << namespace_declaration_close(ns_components)

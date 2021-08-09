@@ -604,7 +604,6 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
                 layout.weight[i] = config.norm_area[i];
             }
             break;
-
         case arb_mechanism_kind_reversal_potential:
             // Mechanisms that set reversal potential should not be contributing
             // to any currents, so leave weights as zero.

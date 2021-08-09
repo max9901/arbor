@@ -67,7 +67,6 @@ struct backend {
             thresholds,
             context);
     }
-
 };
 } // namespace gpu
 } // namespace arb

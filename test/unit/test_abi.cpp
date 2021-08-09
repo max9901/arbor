@@ -145,13 +145,16 @@ TEST(abi, gpu_initialisation) {
     std::vector<arb_value_type> vinit(ncv, -65);
     std::vector<arb::fvm_gap_junction> gj = {};
     std::vector<arb_index_type> src_to_spike = {};
+
     arb::gpu::shared_state shared_state(ncell, ncell, 0,
                                         cv_to_intdom, cv_to_intdom,
                                         gj, vinit, temp, diam, src_to_spike,
                                         1);
+
     arb::mechanism_layout layout;
     layout.weight.assign(ncv, 1.);
     for (arb_size_type i = 0; i<ncv; ++i) layout.cv.push_back(i);
+
     shared_state.instantiate(mech, 42, {}, layout);
 
     {

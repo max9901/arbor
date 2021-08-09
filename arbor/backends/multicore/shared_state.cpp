@@ -467,7 +467,6 @@ const arb_value_type* shared_state::mechanism_state_data(const mechanism& m, con
 // * For indices in the padded tail of ion index maps, set index to last valid ion index.
 
 void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_overrides& overrides, const mechanism_layout& pos_data) {
-
     // Mechanism indices and data require:
     // * an alignment that is a multiple of the mechansim data_alignment();
     // * a size which is a multiple of partition_width() for SIMD access.
@@ -478,18 +477,15 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     util::padded_allocator<> pad(m.data_alignment());
 
     // Set internal variables
-
     m.time_ptr_ptr   = &time_ptr;
 
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
-
     if(m.kind() == arb_mechanism_kind_gap_junction){
         m.ppack_.width            = gap_junctions.size();
     }else{
         m.ppack_.width            = pos_data.cv.size();
     }
-
     m.ppack_.mechanism_id     = id;
     m.ppack_.vec_ci           = cv_to_cell.data();
     m.ppack_.vec_di           = cv_to_intdom.data();
@@ -507,8 +503,6 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     m.ppack_.gap_junction_width = n_gj;
 
     bool mult_in_place = !pos_data.multiplicity.empty();
-
-
     if (storage.find(id) != storage.end()) throw arb::arbor_internal_error("Duplicate mech id in shared state");
     auto& store = storage[id];
 
@@ -539,7 +533,6 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         }else{
             value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
         }
-
         std::size_t count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*value_width_padded + m.mech_.n_globals;
         store.data_ = array(count, NAN, pad);
         chunk_writer writer(store.data_.data(), value_width_padded);
@@ -584,7 +577,6 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         m.ppack_.node_index = writer.append(pos_data.cv, pos_data.cv.back());
 
         auto node_index = util::range_n(m.ppack_.node_index, index_width_padded);
-
         // Make SIMD index constraints and set the view
         store.constraints_ = make_constraint_partition(node_index, m.ppack_.width, m.iface_.partition_width);
         m.ppack_.index_constraints.contiguous    = store.constraints_.contiguous.data();

@@ -157,7 +157,6 @@ TEST(fvm_layout, mech_index) {
     // HH on somas of two cells, with CVs 0 and 5.
     // Proportional area contrib: soma area/CV area.
 
-
     EXPECT_EQ((unsigned)arb_mechanism_kind_density, hh_config.kind);
     EXPECT_EQ(ivec({0,6}), hh_config.cv);
 
@@ -191,7 +190,7 @@ struct exp_instance {
 
     template <typename Seq>
     exp_instance(int cv, const Seq& tgts, double e, double tau):
-        cv(cv), multiplicity(std::size(tgts)), e(e), tau(tau)
+            cv(cv), multiplicity(std::size(tgts)), e(e), tau(tau)
     {
         targets.reserve(std::size(tgts));
         for (auto t: tgts) targets.push_back(t);
@@ -209,8 +208,8 @@ struct exp_instance {
         // Handle both expsyn and exp2syn by looking for "tau1" if "tau"
         // parameter is not found.
         auto& tauvals = *(value_by_key(C.param_values, "tau")?
-            ptr_by_key(C.param_values, "tau"):
-            ptr_by_key(C.param_values, "tau1"));
+                          ptr_by_key(C.param_values, "tau"):
+                          ptr_by_key(C.param_values, "tau1"));
 
         for (auto i: make_span(C.multiplicity.size())) {
             exp_instance other(C.cv[i],
@@ -358,9 +357,9 @@ TEST(fvm_layout, coalescing_synapses) {
         fvm_mechanism_data M = fvm_build_mechanism_data(gprop_coalesce, {cell}, D);
 
         std::vector<exp_instance> instances{
-            exp_instance(2, L{0, 1}, 0., 0.2),
-            exp_instance(2, L{2}, 0.1, 0.2),
-            exp_instance(4, L{3}, 0.1, 0.2),
+                exp_instance(2, L{0, 1}, 0., 0.2),
+                exp_instance(2, L{2}, 0.1, 0.2),
+                exp_instance(4, L{3}, 0.1, 0.2),
         };
         auto& config = M.mechanisms.at("expsyn");
         for (auto& instance: instances) {
@@ -385,10 +384,10 @@ TEST(fvm_layout, coalescing_synapses) {
         fvm_mechanism_data M = fvm_build_mechanism_data(gprop_coalesce, {cell}, D);
 
         std::vector<exp_instance> instances{
-            exp_instance(2, L{4, 6}, 0.0, 2.0),
-            exp_instance(2, L{5, 7}, 1.0, 2.0),
-            exp_instance(4, L{0, 2}, 0.0, 3.0),
-            exp_instance(4, L{1, 3}, 1.0, 3.0),
+                exp_instance(2, L{4, 6}, 0.0, 2.0),
+                exp_instance(2, L{5, 7}, 1.0, 2.0),
+                exp_instance(4, L{0, 2}, 0.0, 3.0),
+                exp_instance(4, L{1, 3}, 1.0, 3.0),
         };
         auto& config = M.mechanisms.at("expsyn");
         for (auto& instance: instances) {
@@ -774,18 +773,18 @@ TEST(fvm_layout, ion_weights) {
     using fvec = std::vector<fvm_value_type>;
 
     //uvec mech_branches[] = {
-        //{0}, {0,2}, {2, 3}, {0, 1, 2, 3}, {3}
+    //{0}, {0,2}, {2, 3}, {0, 1, 2, 3}, {3}
     //};
     uvec mech_branches[] = {
-        {0}, {0,2}
+            {0}, {0,2}
     };
 
     ivec expected_ion_cv[] = {
-        {0}, {0, 2, 3}, {2, 3, 4}, {0, 1, 2, 3, 4}, {2, 4}
+            {0}, {0, 2, 3}, {2, 3, 4}, {0, 1, 2, 3, 4}, {2, 4}
     };
 
     fvec expected_init_iconc[] = {
-        {0.}, {0., 1./2, 0.}, {1./4, 0., 0.}, {0., 0., 0., 0., 0.}, {3./4, 0.}
+            {0.}, {0., 1./2, 0.}, {1./4, 0., 0.}, {0., 0., 0., 0., 0.}, {3./4, 0.}
     };
 
     mechanism_catalogue testcat = make_unit_test_catalogue();
