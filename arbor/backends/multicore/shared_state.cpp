@@ -503,6 +503,7 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     m.ppack_.gap_junction_width = n_gj;
 
     bool mult_in_place = !pos_data.multiplicity.empty();
+
     if (storage.find(id) != storage.end()) throw arb::arbor_internal_error("Duplicate mech id in shared state");
     auto& store = storage[id];
 
@@ -526,6 +527,7 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage
+<<<<<<< HEAD
         std::size_t value_width_padded = 0;
         if(m.kind() == arb_mechanism_kind_gap_junction){
             //todo add padding
@@ -533,6 +535,9 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         }else{
             value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
         }
+=======
+        std::size_t value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
+>>>>>>> 0998de7b53f22dac07a7451b4c84d7fd84beffb3
         std::size_t count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*value_width_padded + m.mech_.n_globals;
         store.data_ = array(count, NAN, pad);
         chunk_writer writer(store.data_.data(), value_width_padded);

@@ -300,10 +300,8 @@ void shared_state::instantiate(mechanism& m, unsigned id, const mechanism_overri
     m.ppack_.diam_um          = diam_um.data();
     m.ppack_.time_since_spike = time_since_spike.data();
     m.ppack_.n_detectors        = n_detector;
-    m.ppack_.n_detectors      = n_detector;
     m.ppack_.gap_junctions      = gap_junctions.data();
     m.ppack_.gap_junction_width = gap_junctions.size();
-
 
     if (storage.find(id) != storage.end()) throw arb::arbor_internal_error("Duplicate mech id in shared state");
     auto& store = storage[id];
