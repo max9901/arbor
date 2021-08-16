@@ -1,7 +1,10 @@
 #ifndef ARB_MECH_ABI
 #define ARB_MECH_ABI
 
+<<<<<<< HEAD
 #include <arbor/fvm_types.hpp>
+=======
+>>>>>>> 0998de7b53f22dac07a7451b4c84d7fd84beffb3
 #include <arbor/arb_types.h>
 
 #ifdef __cplusplus
@@ -22,7 +25,10 @@ typedef uint32_t arb_mechanism_kind;
 #define arb_mechanism_kind_point 1
 #define arb_mechanism_kind_density 2
 #define arb_mechanism_kind_reversal_potential 3
+<<<<<<< HEAD
 #define arb_mechanism_kind_gap_junction 4
+=======
+>>>>>>> 0998de7b53f22dac07a7451b4c84d7fd84beffb3
 
 typedef uint32_t arb_backend_kind;
 #define arb_backend_kind_nil 0
@@ -95,9 +101,12 @@ typedef struct arb_mechanism_ppack {
     arb_value_type** state_vars;                    // Array of integrable state.      (Array)
     arb_value_type*  globals;                       // Array of global constant state. (Scalar)
     arb_ion_state*   ion_states;                    // Array of views into shared state.
+<<<<<<< HEAD
     arb_size_type   gap_junction_width;             // Number of gap Junctions
     arb::fvm_gap_junction* gap_junctions;           // Array of view into the gap junction vector
 
+=======
+>>>>>>> 0998de7b53f22dac07a7451b4c84d7fd84beffb3
 } arb_mechanism_ppack;
 
 
@@ -141,7 +150,6 @@ typedef struct arb_mechanism_interface {
      * - `deliverable_events` is setup correctly externally, is read-only for apply events
      * - called during each integration time step, right after resetting currents
      */
-
     arb_mechanism_method_events apply_events;
     /* 4. advanced_state
      * - called during each integration time step, after solving Hines matrices
@@ -189,7 +197,11 @@ typedef struct arb_mechanism_type {
     unsigned long             abi_version;      // plugin ABI version used to build this mechanism
     arb_mechanism_fingerprint fingerprint;      // provide a unique ID
     const char*               name;             // provide unique name
+<<<<<<< HEAD
     arb_mechanism_kind        kind;             // Point, Density, ReversalPotential, gap junction, ...
+=======
+    arb_mechanism_kind        kind;             // Point, Density, ReversalPotential, ...
+>>>>>>> 0998de7b53f22dac07a7451b4c84d7fd84beffb3
     bool                      is_linear;        // linear, homogeneous mechanism
     bool                      has_post_events;
     // Tables

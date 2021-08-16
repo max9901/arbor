@@ -30,4 +30,5 @@ mechanism_info::mechanism_info(const arb_mechanism_type& m) {
         v.expected_valence };
     }
 }
+
 }

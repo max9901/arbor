@@ -15,6 +15,7 @@
 using namespace arb;
 
 namespace {
+<<<<<<< HEAD
     arb_value_type** field_lookup(const mechanism* m, const std::string& key) {
         for (arb_size_type i = 0; i<m->mech_.n_parameters; ++i) {
             if (key==m->mech_.parameters[i].name) return m->ppack_.parameters+i;
@@ -63,6 +64,56 @@ namespace {
 // GPU mechanisms:
 #ifdef ARB_GPU_ENABLED
     std::vector<arb_value_type> gpu_mechanism_field(const mechanism* m, const std::string& key) {
+=======
+arb_value_type** field_lookup(const mechanism* m, const std::string& key) {
+    for (arb_size_type i = 0; i<m->mech_.n_parameters; ++i) {
+        if (key==m->mech_.parameters[i].name) return m->ppack_.parameters+i;
+    }
+    for (arb_size_type i = 0; i<m->mech_.n_state_vars; ++i) {
+        if (key==m->mech_.state_vars[i].name) return m->ppack_.state_vars+i;
+    }
+    throw std::logic_error("internal error: no such field in mechanism");
+}
+
+arb_value_type* global_lookup(const mechanism* m, const std::string& key) {
+    for (arb_size_type i = 0; i<m->mech_.n_globals; ++i) {
+        if (key==m->mech_.globals[i].name) return m->ppack_.globals+i;
+    }
+    throw std::logic_error("internal error: no such field in mechanism");
+}
+
+arb_ion_state* ion_lookup(const mechanism* m, const std::string& ion) {
+    for (arb_size_type i = 0; i<m->mech_.n_ions; ++i) {
+        if (ion==m->mech_.ions[i].name) return m->ppack_.ion_states+i;
+    }
+    throw std::logic_error("internal error: no such field in mechanism");
+}
+
+// Multicore mechanisms:
+std::vector<arb_value_type> mc_mechanism_field(const mechanism* m, const std::string& key) {
+    auto p = *field_lookup(m, key);
+    return std::vector<arb_value_type>(p, p+m->ppack_.width);
+}
+
+void mc_write_mechanism_field(const arb::mechanism* m, const std::string& key, const std::vector<arb::arb_value_type>& values) {
+    auto p = *field_lookup(m, key);
+    std::size_t n = std::min(values.size(), std::size_t(m->ppack_.width));
+    std::copy_n(values.data(), n, p);
+}
+
+std::vector<arb_index_type> mc_mechanism_ion_index(const mechanism* m, const std::string& ion) {
+    auto istate = *ion_lookup(m, ion);
+    return std::vector<arb_index_type>(istate.index, istate.index+m->ppack_.width);
+}
+
+arb_value_type mc_mechanism_global(const mechanism* m, const std::string& key) {
+    return *global_lookup(m, key);
+}
+
+// GPU mechanisms:
+#ifdef ARB_GPU_ENABLED
+std::vector<arb_value_type> gpu_mechanism_field(const mechanism* m, const std::string& key) {
+>>>>>>> 0998de7b53f22dac07a7451b4c84d7fd84beffb3
     auto p_ptr = field_lookup(m, key);
     arb_value_type* p;
     memory::gpu_memcpy_d2h(&p, p_ptr, sizeof(p));
@@ -157,3 +208,4 @@ arb_value_type mechanism_global(const mechanism* m, const std::string& key) {
 
     throw std::logic_error("internal error: mechanism instantiated on unknown backend");
 }
+

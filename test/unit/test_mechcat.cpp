@@ -106,21 +106,21 @@ struct test_backend {
 struct foo_backend: test_backend {
     static constexpr arb_backend_kind kind = 42;
     foo_backend(): test_backend{{{ "a", arb_ion_state{(arb_value_type*)0x1, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "b", arb_ion_state{(arb_value_type*)0x2, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "c", arb_ion_state{(arb_value_type*)0x3, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "d", arb_ion_state{(arb_value_type*)0x4, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "e", arb_ion_state{(arb_value_type*)0x5, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "f", arb_ion_state{(arb_value_type*)0x6, nullptr, nullptr, nullptr, nullptr, nullptr}}}} {}
+                                 { "b", arb_ion_state{(arb_value_type*)0x2, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "c", arb_ion_state{(arb_value_type*)0x3, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "d", arb_ion_state{(arb_value_type*)0x4, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "e", arb_ion_state{(arb_value_type*)0x5, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "f", arb_ion_state{(arb_value_type*)0x6, nullptr, nullptr, nullptr, nullptr, nullptr}}}} {}
 };
 
 struct bar_backend: test_backend {
     static constexpr arb_backend_kind kind = 23;
     bar_backend(): test_backend{{{ "a", arb_ion_state{(arb_value_type*)0x7, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "b", arb_ion_state{(arb_value_type*)0x8, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "c", arb_ion_state{(arb_value_type*)0x8, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "d", arb_ion_state{(arb_value_type*)0x9, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "e", arb_ion_state{(arb_value_type*)0xa, nullptr, nullptr, nullptr, nullptr, nullptr}},
-                                        { "f", arb_ion_state{(arb_value_type*)0xb, nullptr, nullptr, nullptr, nullptr, nullptr}}}} {}
+                                 { "b", arb_ion_state{(arb_value_type*)0x8, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "c", arb_ion_state{(arb_value_type*)0x8, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "d", arb_ion_state{(arb_value_type*)0x9, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "e", arb_ion_state{(arb_value_type*)0xa, nullptr, nullptr, nullptr, nullptr, nullptr}},
+                                 { "f", arb_ion_state{(arb_value_type*)0xb, nullptr, nullptr, nullptr, nullptr, nullptr}}}} {}
 };
 
 // Fleeb implementations:
@@ -233,7 +233,7 @@ TEST(mechcat, fingerprint) {
     EXPECT_EQ("burbleprint", cat.fingerprint("bleeble"));
 
     EXPECT_THROW(cat.register_implementation("burble", std::unique_ptr<mechanism>{mk_burble_bar()}),
-                 arb::fingerprint_mismatch);
+        arb::fingerprint_mismatch);
 }
 
 TEST(mechcat, names) {
@@ -337,25 +337,25 @@ TEST(mechcat, remove) {
 
 bool cmp_mechs(const mechanism& a, const mechanism& b) {
     return
-            (a.iface_.backend == b.iface_.backend) &&
-            (a.iface_.partition_width == b.iface_.partition_width) &&
-            (a.iface_.alignment == b.iface_.alignment) &&
-            (a.iface_.init_mechanism == b.iface_.init_mechanism) &&
-            (a.iface_.compute_currents == b.iface_.compute_currents) &&
-            (a.iface_.apply_events == b.iface_.apply_events) &&
-            (a.iface_.advance_state == b.iface_.advance_state) &&
-            (a.iface_.write_ions == b.iface_.write_ions) &&
-            (a.iface_.post_event == b.iface_.post_event) &&
-            (a.mech_.abi_version == b.mech_.abi_version) &&
-            (std::string{a.mech_.fingerprint} == std::string{b.mech_.fingerprint}) &&
-            (std::string{a.mech_.name} == std::string{b.mech_.name}) &&
-            (a.mech_.kind == b.mech_.kind) &&
-            (a.mech_.is_linear == b.mech_.is_linear) &&
-            (a.mech_.has_post_events == b.mech_.has_post_events) &&
-            (a.mech_.globals == b.mech_.globals) && (a.mech_.n_globals == b.mech_.n_globals) &&
-            (a.mech_.state_vars == b.mech_.state_vars) && (a.mech_.n_state_vars == b.mech_.n_state_vars) &&
-            (a.mech_.parameters == b.mech_.parameters) && (a.mech_.n_parameters == b.mech_.n_parameters) &&
-            (a.mech_.ions == b.mech_.ions) && (a.mech_.n_ions == b.mech_.n_ions);
+        (a.iface_.backend == b.iface_.backend) &&
+        (a.iface_.partition_width == b.iface_.partition_width) &&
+        (a.iface_.alignment == b.iface_.alignment) &&
+        (a.iface_.init_mechanism == b.iface_.init_mechanism) &&
+        (a.iface_.compute_currents == b.iface_.compute_currents) &&
+        (a.iface_.apply_events == b.iface_.apply_events) &&
+        (a.iface_.advance_state == b.iface_.advance_state) &&
+        (a.iface_.write_ions == b.iface_.write_ions) &&
+        (a.iface_.post_event == b.iface_.post_event) &&
+        (a.mech_.abi_version == b.mech_.abi_version) &&
+        (std::string{a.mech_.fingerprint} == std::string{b.mech_.fingerprint}) &&
+        (std::string{a.mech_.name} == std::string{b.mech_.name}) &&
+        (a.mech_.kind == b.mech_.kind) &&
+        (a.mech_.is_linear == b.mech_.is_linear) &&
+        (a.mech_.has_post_events == b.mech_.has_post_events) &&
+        (a.mech_.globals == b.mech_.globals) && (a.mech_.n_globals == b.mech_.n_globals) &&
+        (a.mech_.state_vars == b.mech_.state_vars) && (a.mech_.n_state_vars == b.mech_.n_state_vars) &&
+        (a.mech_.parameters == b.mech_.parameters) && (a.mech_.n_parameters == b.mech_.n_parameters) &&
+        (a.mech_.ions == b.mech_.ions) && (a.mech_.n_ions == b.mech_.n_ions);
 }
 
 TEST(mechcat, instance) {
