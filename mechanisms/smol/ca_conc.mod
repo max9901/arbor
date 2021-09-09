@@ -46,7 +46,7 @@ PARAMETER {
     restingConc = 0 (mM)
     decayConstant = 33.333336 (ms)
     Faraday = 0.0964853 (C / umol)
-    shellDepth = 0.001 (um)
+    shellDepth = 0.01 (um)
     AREA_SCALE = 1.0E12 (um2)
     LENGTH_SCALE = 1000000 (um)
     diam (um)
@@ -89,5 +89,6 @@ PROCEDURE rates(ica) {
     eqshellDepth = shellDepth  - ((  shellDepth   *   shellDepth  ) /   effectiveRadius  ) ? evaluable
     innerRadius = effectiveRadius  -  eqshellDepth ? evaluable
     shellVolume = (4 * (  effectiveRadius   *  effectiveRadius  *   effectiveRadius  ) * 3.14159 / 3) - (4 * (  innerRadius   *  innerRadius  *   innerRadius  ) * 3.14159 / 3) ? evaluable
-    rate_concentration = iCa / (2 *  Faraday  *   shellVolume  ) - ((  cai   -   restingConc  ) /   decayConstant  ) ? Note units of all quantities used here need to be consistent!
+    ? old model (v2): rate_concentration = iCa / (2 *  Faraday  *   shellVolume  ) - ((  cai   -   restingConc  ) /   decayConstant  ) ? Note units of all quantities used here need to be consistent!
+    rate_concentration = ((iCa /surfaceArea) / (2 *  Faraday  *   eqshellDepth  )) - ((  cai   -   restingConc  ) /   decayConstant  ) ? Note units of all quantities used here need to be consistent!
 }
