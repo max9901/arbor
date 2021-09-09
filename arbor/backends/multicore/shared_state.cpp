@@ -530,7 +530,7 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         std::size_t value_width_padded = 0;
         if(m.kind() == arb_mechanism_kind_gap_junction){
             //todo add padding
-            value_width_padded            = gap_junctions.size();
+            value_width_padded            = extend_width<arb_value_type>(m,  gap_junctions.size());
         }else{
             value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
         }
@@ -570,12 +570,19 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Make index bulk storage
     {
         // Allocate bulk storage
-        std::size_t index_width_padded = extend_width<arb_index_type>(m, pos_data.cv.size());
+        std::size_t index_width_padded;
+        if(m.kind() == arb_mechanism_kind_gap_junction) {
+            index_width_padded = extend_width<arb_value_type>(m,  gap_junctions.size());
+        }else{
+            index_width_padded = extend_width<arb_index_type>(m, pos_data.cv.size());
+        }
         std::size_t count = mult_in_place + m.mech_.n_ions + 1;
         store.indices_ = iarray(count*index_width_padded, 0, pad);
         chunk_writer writer(store.indices_.data(), index_width_padded);
         // Setup node indices
-        m.ppack_.node_index = writer.append(pos_data.cv, pos_data.cv.back());
+        if(m.kind() != arb_mechanism_kind_gap_junction) {
+            m.ppack_.node_index = writer.append(pos_data.cv, pos_data.cv.back());
+        }
 
         auto node_index = util::range_n(m.ppack_.node_index, index_width_padded);
         // Make SIMD index constraints and set the view
