@@ -118,8 +118,7 @@ if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)
 endif()
 
 # Library target:
-
-add_library(arbor ${arbor_sources} ${arbor_mechanism_sources})
+add_library(arbor ${arbor_sources} ${arbor_mechanism_sources} ${arbor_mechanism_sources_custom})
 add_dependencies(arbor build_all_mods)
 
 target_link_libraries(arbor PRIVATE arbor-private-deps arbor-private-headers)

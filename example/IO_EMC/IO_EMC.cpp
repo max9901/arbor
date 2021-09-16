@@ -36,7 +36,7 @@ struct io_params {
     std::string name = "default";
     double simtime   = 10;       //ms
     double timestep  = 0.025;  //ms
-    unsigned n_cells = 1;
+    unsigned n_cells = 4;
 };
 
 arb::cable_cell IO_cell();
@@ -187,8 +187,8 @@ int main() {
 
     auto cat = (arb::mechanism_catalogue*)&arb::global_smol_catalogue();
 
-//    auto IOUCat = (arb::mechanism_catalogue*)&arb::global_IOU_catalogue();
-//    cat->import(*IOUCat,"");      //actually add the catalogue we are interested in.
+    auto IOUCat = (arb::mechanism_catalogue*)&arb::global_EMC_catalogue();
+    cat->import(*IOUCat,"");      //actually add the catalogue we are interested in.
 
     // Create an instance of our recipe.
     IO_recipe recipe(params, cat);
@@ -326,8 +326,8 @@ arb::cable_cell IO_cell(){
     leak["gmax"] = 1.3e-05;
     decor.paint("(all)"_reg, leak);
 
-    //    arb::mechanism_desc ou_noise("ou_noise/seed=10");
-    //    decor.paint("(all)"_reg, ou_noise);
+    arb::mechanism_desc ou_noise("ou_noise/seed=10");
+    decor.paint("(all)"_reg, ou_noise);
 
     // Add gap junction sites at the end of the branch
     decor.place(arb::mlocation{1, 1}, arb::gap_junction_site{},"local_0");

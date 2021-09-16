@@ -49,6 +49,13 @@ set(arbor_mechanism_sources
   ${CAT_SMOL_SOURCES}
   PARENT_SCOPE)
 
+# Set custom C++ catalogues
+add_subdirectory(EMC)
+set(arbor_mechanism_sources_custom
+        ${EMC_mechanism_sources_custom}
+        PARENT_SCOPE
+        )
+
 if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)
     set_source_files_properties(${arbor_mechanism_sources} PROPERTIES LANGUAGE CXX)
 endif()
