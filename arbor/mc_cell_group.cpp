@@ -45,6 +45,9 @@ mc_cell_group::mc_cell_group(const std::vector<cell_gid_type>& gids,
         gid_index_map_[gids_[i]] = i;
     }
 
+    // Set the manual gap junction if applicable
+    lowered_->set_manual_gap_junctions(rec.manual_gap_junctions);
+
     // Construct cell implementation, retrieving handles and maps.
     auto fvm_info = lowered_->initialize(gids_, rec);
 

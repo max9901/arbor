@@ -1,5 +1,4 @@
 #pragma once
-
 // Implementations for fvm_lowered_cell are parameterized
 // on the back-end class.
 //
@@ -47,7 +46,7 @@ public:
     using index_type = fvm_index_type;
     using size_type = fvm_size_type;
 
-    fvm_lowered_cell_impl(execution_context ctx): context_(ctx), threshold_watcher_(ctx) {};
+    fvm_lowered_cell_impl(execution_context ctx): context_(ctx), threshold_watcher_(ctx), manual_gap_junctions(false) {};
 
     void reset() override;
 
@@ -77,6 +76,11 @@ public:
 
     value_type time() const override { return tmin_; }
 
+    //to disable the build in gap junctions and use the manual gap junctions set trough the mechnanism ABI.
+    void set_manual_gap_junctions(bool value){
+        manual_gap_junctions = value;
+    }
+
     //Exposed for testing purposes
     std::vector<mechanism_ptr>& mechanisms() {
         return mechanisms_;
@@ -99,6 +103,7 @@ private:
     array sample_value_;
     matrix<backend> matrix_;
     threshold_watcher threshold_watcher_;
+    bool manual_gap_junctions = false;
 
     value_type tmin_ = 0;
     std::vector<mechanism_ptr> mechanisms_; // excludes reversal potential calculators.
@@ -252,8 +257,11 @@ fvm_integration_result fvm_lowered_cell_impl<Backend>::integrate(
             m->update_current();
         }
 
-        // Add current contribution from gap_junctions
-        state_->add_gj_current();
+        // Add current contribution from gap_junctions if they are not overwritten by mechanisms.
+        // defaults to False -> so defaults to none manual gap junctions.
+        if(!manual_gap_junctions) {
+            state_->add_gj_current();
+        }
 
         PE(advance_integrate_events);
         state_->deliverable_events.drop_marked_events();
@@ -533,6 +541,22 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     std::unordered_map<std::string, mechanism*> mechptr_by_name;
 
     unsigned mech_id = 0;
+
+    //add the ap junction mechanism if needed
+    if(manual_gap_junctions and gj_vector.size() != 0){
+        auto gapmech = rec.gap_junction_mech();
+        auto name = gapmech.name();
+        auto minst = mech_instance(name);
+        const auto temp = minst.mech.get();
+        if( temp->kind() != arb_mechanism_kind_gap_junction){
+            throw arbor_internal_error("not a gap juntion mechanism in the gap_junction_mech receip call");
+        }
+        mechanism_layout layout;
+        state_->instantiate(*minst.mech, mech_id++, minst.overrides, layout);
+        mechptr_by_name[name] = minst.mech.get();
+        mechanisms_.push_back(mechanism_ptr(minst.mech.release()));
+    }
+
     for (auto& m: mech_data.mechanisms) {
         auto& name = m.first;
         auto& config = m.second;

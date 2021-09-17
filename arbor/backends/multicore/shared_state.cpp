@@ -485,7 +485,11 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
 
     // Assign non-owning views onto shared state:
     m.ppack_ = {0};
-    m.ppack_.width            = pos_data.cv.size();
+    if(m.kind() == arb_mechanism_kind_gap_junction){
+        m.ppack_.width            = gap_junctions.size();
+    }else{
+        m.ppack_.width            = pos_data.cv.size();
+    }
     m.ppack_.mechanism_id     = id;
     m.ppack_.vec_ci           = cv_to_cell.data();
     m.ppack_.vec_di           = cv_to_intdom.data();
@@ -499,6 +503,9 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     m.ppack_.n_detectors      = n_detector;
     m.ppack_.events           = {};
     m.ppack_.vec_t            = nullptr;
+
+    m.ppack_.gap_junctions = gap_junctions.data();
+    m.ppack_.gap_junction_width = n_gj;
 
     bool mult_in_place = !pos_data.multiplicity.empty();
 
@@ -525,7 +532,12 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Initialize state and parameter vectors with default values.
     {
         // Allocate bulk storage
-        std::size_t value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
+        std::size_t value_width_padded;
+        if(m.kind() == arb_mechanism_kind_gap_junction){
+            value_width_padded            = extend_width<arb_value_type>(m,  gap_junctions.size());
+        }else{
+            value_width_padded = extend_width<arb_value_type>(m, pos_data.cv.size());
+        }
         std::size_t count = (m.mech_.n_state_vars + m.mech_.n_parameters + 1)*value_width_padded + m.mech_.n_globals;
         store.data_ = array(count, NAN, pad);
         chunk_writer writer(store.data_.data(), value_width_padded);
@@ -562,13 +574,20 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // Make index bulk storage
     {
         // Allocate bulk storage
-        std::size_t index_width_padded = extend_width<arb_index_type>(m, pos_data.cv.size());
+        std::size_t index_width_padded;
+        if(m.kind() == arb_mechanism_kind_gap_junction) {
+            index_width_padded = extend_width<arb_value_type>(m,  gap_junctions.size());
+        }else{
+            index_width_padded = extend_width<arb_index_type>(m, pos_data.cv.size());
+        }
         std::size_t count = mult_in_place + m.mech_.n_ions + 1;
         store.indices_ = iarray(count*index_width_padded, 0, pad);
         chunk_writer writer(store.indices_.data(), index_width_padded);
         // Setup node indices
-        m.ppack_.node_index = writer.append(pos_data.cv, pos_data.cv.back());
-
+        // Setup node indices
+        if(m.kind() != arb_mechanism_kind_gap_junction) {
+            m.ppack_.node_index = writer.append(pos_data.cv, pos_data.cv.back());
+        }
         auto node_index = util::range_n(m.ppack_.node_index, index_width_padded);
         // Make SIMD index constraints and set the view
         store.constraints_ = make_constraint_partition(node_index, m.ppack_.width, m.iface_.partition_width);

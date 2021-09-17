@@ -230,6 +230,8 @@ struct fvm_lowered_cell {
 
     virtual fvm_value_type time() const = 0;
 
+    virtual void set_manual_gap_junctions(bool value) = 0;
+
     virtual ~fvm_lowered_cell() {}
 };
 

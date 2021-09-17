@@ -119,6 +119,9 @@ private:
     // Record last computed epoch (integration interval).
     epoch epoch_;
 
+    //manual_gap_junctions enabled
+    bool manual_gap_junctions;
+
     // Maximum epoch duration.
     time_type t_interval_ = 0;
 
@@ -183,6 +186,7 @@ simulation_state::simulation_state(
         const domain_decomposition& decomp,
         execution_context ctx
     ):
+    manual_gap_junctions(rec.manual_gap_junctions),
     task_system_(ctx.thread_pool),
     local_spikes_({thread_private_spike_store(ctx.thread_pool), thread_private_spike_store(ctx.thread_pool)})
 {
