@@ -5,8 +5,8 @@
 #include "iostream" //debugging
 #include <arbor/mechanism_abi.h>
 
-namespace arb::IOU_catalogue::kernel_linear_gj {
-    static constexpr unsigned simd_width_ = 0;
+namespace arb::EMC_catalogue::kernel_linear_gj {
+    static constexpr unsigned simd_width_ = 1;
 
 #define S(x) std::cout << #x << "\t\t" << x << std::endl;
 
@@ -56,16 +56,16 @@ namespace arb::IOU_catalogue::kernel_linear_gj {
 }
 
 extern "C" {
-arb_mechanism_interface* make_arb_IOU_catalogue_linear_gj_interface_multicore() {
+arb_mechanism_interface* make_arb_EMC_catalogue_linear_gj_interface_multicore() {
     static arb_mechanism_interface result;
-    result.partition_width = arb::IOU_catalogue::kernel_linear_gj::simd_width_;
+    result.partition_width = arb::EMC_catalogue::kernel_linear_gj::simd_width_;
     result.backend=arb_backend_kind_cpu;
     result.alignment=1;
-    result.init_mechanism  = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::init;
-    result.compute_currents= (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::compute_currents;
-    result.apply_events    = (arb_mechanism_method_events)arb::IOU_catalogue::kernel_linear_gj::apply_events;
-    result.advance_state   = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::advance_state;
-    result.write_ions      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::write_ions;
-    result.post_event      = (arb_mechanism_method)arb::IOU_catalogue::kernel_linear_gj::post_event;
+    result.init_mechanism  = (arb_mechanism_method)arb::EMC_catalogue::kernel_linear_gj::init;
+    result.compute_currents= (arb_mechanism_method)arb::EMC_catalogue::kernel_linear_gj::compute_currents;
+    result.apply_events    = (arb_mechanism_method_events)arb::EMC_catalogue::kernel_linear_gj::apply_events;
+    result.advance_state   = (arb_mechanism_method)arb::EMC_catalogue::kernel_linear_gj::advance_state;
+    result.write_ions      = (arb_mechanism_method)arb::EMC_catalogue::kernel_linear_gj::write_ions;
+    result.post_event      = (arb_mechanism_method)arb::EMC_catalogue::kernel_linear_gj::post_event;
     return &result;
 }}

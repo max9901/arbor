@@ -6,7 +6,7 @@
 #include <arbor/mechanism_abi.h>
 
 namespace arb {
-    namespace IOU_catalogue {
+    namespace EMC_catalogue {
         
 #define PPACK_IFACE_BLOCK \
 auto* _pp_var_vec_i              __attribute__((unused)) = params_.vec_i;\
@@ -38,5 +38,5 @@ void mechanism_linear_gj_gpu_write_ions_(arb_mechanism_ppack*) {}
 void mechanism_linear_gj_gpu_post_event_(arb_mechanism_ppack*) {}
 void mechanism_linear_gj_gpu_apply_events_(arb_mechanism_ppack*) {}
 
-} // namespace IOU_catalogue
+} // namespace EMC_catalogue
 } // namespace arb

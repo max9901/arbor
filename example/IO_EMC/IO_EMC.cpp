@@ -43,7 +43,9 @@ arb::cable_cell IO_cell();
 void write_trace_json(const std::vector<arb::trace_vector<double>>& traces, unsigned rank, unsigned cell);
 class IO_recipe: public arb::recipe {
 public:
-    explicit IO_recipe(io_params params,const arb::mechanism_catalogue* catalogue): params_ (std::move(params)),catalogue_(catalogue) {}
+    explicit IO_recipe(io_params params,const arb::mechanism_catalogue* catalogue): params_ (std::move(params)),catalogue_(catalogue) {
+        manual_gap_junctions = true;
+    }
 
     [[nodiscard]] arb::cell_size_type num_cells() const override {
         return params_.n_cells;
@@ -78,71 +80,71 @@ public:
 //        return {arb::cell_connection({gid - 1, 0}, 0, params_.event_weight, params_.event_min_delay)};
     }
 
-//    [[nodiscard]] std::vector<arb::gap_junction_connection> gap_junctions_on(arb::cell_gid_type gid) const override{
-//        using policy = arb::lid_selection_policy;
-//        std::vector<arb::gap_junction_connection> conns;
-//
-//        if(gid !=0){
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_0", policy::assert_univalent},
-//                                                         {"local_0", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//
-//        }
-//        else{
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_0", policy::assert_univalent},
-//                                                         {"local_0", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//
-//        }
-//
-//        if(gid != params_.n_cells-1){
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_0", policy::assert_univalent},
-//                                                         {"local_0", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//        }
-//        else{
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_0", policy::assert_univalent},
-//                                                         {"local_0", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//
-//            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
-//                                                         {"local_2", policy::assert_univalent},
-//                                                         0.015));
-//        }
-//        return conns;
-//    }
+    [[nodiscard]] std::vector<arb::gap_junction_connection> gap_junctions_on(arb::cell_gid_type gid) const override{
+        using policy = arb::lid_selection_policy;
+        std::vector<arb::gap_junction_connection> conns;
 
-//    [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
-//        return arb::mechanism_desc("glomerulus_gj");
-//    }
+        if(gid !=0){
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_0", policy::assert_univalent},
+                                                         {"local_0", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid -1, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+
+        }
+        else{
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_0", policy::assert_univalent},
+                                                         {"local_0", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)params_.n_cells-1, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+
+        }
+
+        if(gid != params_.n_cells-1){
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_0", policy::assert_univalent},
+                                                         {"local_0", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)gid +1, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+        }
+        else{
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_0", policy::assert_univalent},
+                                                         {"local_0", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+
+            conns.push_back(arb::gap_junction_connection({(arb::cell_gid_type)0, "local_1", policy::assert_univalent},
+                                                         {"local_2", policy::assert_univalent},
+                                                         0.015));
+        }
+        return conns;
+    }
+
+    [[nodiscard]] arb::mechanism_desc gap_junction_mech() const override {
+        return arb::mechanism_desc("cx36_gj");
+    }
 
 private:
     io_params params_;

@@ -4,7 +4,7 @@
 #include <arbor/mechanism_abi.h>
 
 extern "C" {
-  arb_mechanism_type make_arb_IOU_catalogue_cx36_gj() {
+  arb_mechanism_type make_arb_EMC_catalogue_linear_gj() {
     static arb_field_info globals[] = {};
     static arb_size_type n_globals = 0;
     static arb_field_info state_vars[] = {};
@@ -17,7 +17,7 @@ extern "C" {
     arb_mechanism_type result;
     result.abi_version=ARB_MECH_ABI_VERSION;
     result.fingerprint="<placeholder>";
-    result.name="cx36_gj";
+    result.name="linear_gj";
     result.kind=arb_mechanism_kind_gap_junction;
     result.is_linear=false;
     result.has_post_events=false;
@@ -32,6 +32,6 @@ extern "C" {
     return result;
   }
 
-  arb_mechanism_interface* make_arb_IOU_catalogue_cx36_gj_interface_multicore();
-  arb_mechanism_interface* make_arb_IOU_catalogue_cx36_gj_interface_gpu();
+  arb_mechanism_interface* make_arb_EMC_catalogue_linear_gj_interface_multicore();
+  arb_mechanism_interface* make_arb_EMC_catalogue_linear_gj_interface_gpu();
 }
