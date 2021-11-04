@@ -69,11 +69,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace r123{
 
 #if !defined(__CUDACC__)
-    typedef struct { float x, y; } float2;
-    typedef struct { double x, y; } double2;
+typedef struct { float x, y; } float2;
+typedef struct { double x, y; } double2;
 #else
-    typedef ::float2 float2;
-    typedef ::double2 double2;
+typedef ::float2 float2;
+typedef ::double2 double2;
 #endif
 
 #if !defined(R123_NO_SINCOS) && defined(__APPLE__)

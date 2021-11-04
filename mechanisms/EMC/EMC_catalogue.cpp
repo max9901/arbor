@@ -37,8 +37,7 @@ mechanism_catalogue build_EMC_catalogue() {
     cat.register_implementation("adex_PC", std::make_unique<mechanism>(make_arb_EMC_catalogue_adex_PC(), *make_arb_EMC_catalogue_adex_PC_interface_multicore()));
 
 #ifdef ARB_HAVE_GPU
-    std::cout << "adex not implemented on GPU";
-    exit(0)
+    printf("\n\n[WARNING !!!] ADEX not yet implemented on GPU's\n\n");
 #endif
 
     return cat;

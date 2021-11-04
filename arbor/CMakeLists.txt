@@ -119,6 +119,7 @@ endif()
 
 # Library target:
 
+MESSAGE(${arbor_mechanism_sources_custom})
 add_library(arbor ${arbor_sources} ${arbor_mechanism_sources} ${arbor_mechanism_sources_custom})
 add_dependencies(arbor build_all_mods)
 
