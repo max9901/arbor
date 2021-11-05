@@ -27,7 +27,7 @@ mechanism_catalogue build_EMC_catalogue() {
     cat.register_implementation("gj_linear", std::make_unique<mechanism>(make_arb_EMC_catalogue_gj_linear(), *make_arb_EMC_catalogue_gj_linear_interface_gpu()));
 #endif
 
-    // elias adex todo gpu
+    // elias adex
     cat.add("adex", make_arb_EMC_catalogue_adex());
     cat.add("adex_DCN", make_arb_EMC_catalogue_adex_DCN());
     cat.add("adex_PC", make_arb_EMC_catalogue_adex_PC());
@@ -37,6 +37,7 @@ mechanism_catalogue build_EMC_catalogue() {
     cat.register_implementation("adex_PC", std::make_unique<mechanism>(make_arb_EMC_catalogue_adex_PC(), *make_arb_EMC_catalogue_adex_PC_interface_multicore()));
 
 #ifdef ARB_HAVE_GPU
+    //    todo gpu
     printf("\n\n[WARNING !!!] ADEX not yet implemented on GPU's\n\n");
 #endif
 
