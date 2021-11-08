@@ -9,6 +9,7 @@ make_catalogue(
   PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"
   CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
   STANDALONE FALSE
+  CXXIN   FALSE
   VERBOSE ${ARB_CAT_VERBOSE})
 
 make_catalogue(
@@ -19,6 +20,7 @@ make_catalogue(
   PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"
   CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
   STANDALONE FALSE
+  CXXIN   FALSE
   VERBOSE ${ARB_CAT_VERBOSE})
 
 make_catalogue(
@@ -29,32 +31,42 @@ make_catalogue(
   PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"
   CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
   STANDALONE FALSE
+  CXXIN   FALSE
   VERBOSE ${ARB_CAT_VERBOSE})
 
 make_catalogue(
         NAME smol
         SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/smol"
         OUTPUT "CAT_SMOL_SOURCES"
-        MECHS ca_conc cacc cah cal h k kca kdr leak na_a na_s calpid cx36 cx36temp
-        PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"
         CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
         STANDALONE FALSE
-        VERBOSE ${ARB_CAT_VERBOSE})
+        VERBOSE ${ARB_CAT_VERBOSE}
+        CXXIN   FALSE
+        MECHS ca_conc cacc cah cal h k kca kdr leak na_a na_s calpid cx36 cx36temp
+        PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"
+    )
+
+# Goal make it possible to add CPP catalogues with a single make_catalogue function
+make_catalogue(
+        NAME EMC
+        SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/EMC/EMC_Mechs"  # redirected to output path ++ the emc_cat.cpp
+        OUTPUT "CAT_EMC_SOURCES"                             #    see above -
+        CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
+        STANDALONE FALSE
+        VERBOSE TRUE
+        CXXIN   TRUE
+        MECHS ou_noise gj_linear
+        PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"            #   Unused NOW
+)
 
 # Join sources
 set(arbor_mechanism_sources
   ${CAT_BBP_SOURCES}
   ${CAT_ALLEN_SOURCES}
+  ${CAT_EMC_SOURCES}
   ${CAT_DEFAULT_SOURCES}
   ${CAT_SMOL_SOURCES}
   PARENT_SCOPE)
-
-# Set custom C++ catalogues
-add_subdirectory(EMC)
-set(arbor_mechanism_sources_custom
-        ${EMC_mechanism_sources_custom}
-        PARENT_SCOPE
-        )
 
 if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)
     set_source_files_properties(${arbor_mechanism_sources} PROPERTIES LANGUAGE CXX)
