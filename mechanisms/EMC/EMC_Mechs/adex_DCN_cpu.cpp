@@ -51,7 +51,6 @@ namespace arb::EMC_catalogue::kernel_adex_DCN {
             const auto nidx = _pp_var_node_index[i];
             _pp_var_Vcut[i] = _pp_var_VT[i] + 5. *_pp_var_DeltaT[i];
             _pp_var_vec_i[nidx] = 0;
-            //_pp_var_vec_v[nidx] = -50;    //possibility to initialize the vec_v
         }
     }
 

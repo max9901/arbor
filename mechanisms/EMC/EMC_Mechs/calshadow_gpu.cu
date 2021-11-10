@@ -139,8 +139,8 @@ void init(arb_mechanism_ppack params_) {
     if (tid_<n_) {
         for (int j_ = 0; j_ < n_; ++j_) {
             // Sorry for O(n^2), but this is portably across CPU & GPU
-            if (_pp_var_neuron_gid[j_] == _pp_var_other_cell[i_]) {
-                _pp_var_mirror_cv[i_] = j_;
+            if (_pp_var_neuron_gid[j_] == _pp_var_other_cell[tid_]) {
+                _pp_var_mirror_cv[tid_] = j_;
                 break;
             }
         }
