@@ -55,7 +55,7 @@ make_catalogue(
         STANDALONE FALSE
         VERBOSE TRUE
         CXXIN   TRUE
-        MECHS ou_noise gj_linear adex
+        MECHS ou_noise gj_linear adex calshadow
         PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"            #   Unused NOW
 )
 
