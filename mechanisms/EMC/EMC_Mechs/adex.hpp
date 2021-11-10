@@ -1,3 +1,18 @@
+/*
+ *  Created by Elias, Lennart and Max (k3)
+ *
+// Mechanism weights are F·α where α ∈ [0, 1] is the proportional
+// contribution in the CV, and F is the scaling factor required
+// to convert from the mechanism current contribution units to A/m².
+switch (config.kind) {
+case arb_mechanism_kind_point:
+    // Point mechanism contributions are in [nA]; CV area A in [µm^2].
+    // F = 1/A * [nA/µm²] / [A/m²] = 1000/A.
+    // */
+/*  dvm/dt = (gL*(EL-vm)+gL*DeltaT*exp((vm-VT)/DeltaT) + I -w)/C : volt
+*  dw/dt = (a*(vm-EL)-w)/tauw : amp
+* */
+
 #pragma once
 
 #include <cmath>

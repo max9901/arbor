@@ -48,7 +48,6 @@ namespace arb::EMC_catalogue::kernel_adex {
             const auto nidx = _pp_var_node_index[i];
             _pp_var_Vcut[i] = _pp_var_VT[i] + 5. *_pp_var_DeltaT[i];
             _pp_var_vec_i[nidx] = 0;
-            //_pp_var_vec_v[nidx] = -50;
         }
     }
 
@@ -56,18 +55,6 @@ namespace arb::EMC_catalogue::kernel_adex {
     }
 
     static void advance_state(arb_mechanism_ppack* pp) {
-        /*
-        // Mechanism weights are F·α where α ∈ [0, 1] is the proportional
-        // contribution in the CV, and F is the scaling factor required
-        // to convert from the mechanism current contribution units to A/m².
-        switch (config.kind) {
-        case arb_mechanism_kind_point:
-            // Point mechanism contributions are in [nA]; CV area A in [µm^2].
-            // F = 1/A * [nA/µm²] / [A/m²] = 1000/A.
-            // */
-        /*  dvm/dt = (gL*(EL-vm)+gL*DeltaT*exp((vm-VT)/DeltaT) + I -w)/C : volt
-        *  dw/dt = (a*(vm-EL)-w)/tauw : amp
-        * */
         PPACK_IFACE_BLOCK;
         for (unsigned i = 0; i < _pp_var_width; i++) {
             const auto nidx = _pp_var_node_index[i];
