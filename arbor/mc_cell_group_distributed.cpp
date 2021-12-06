@@ -16,7 +16,7 @@
 #include "event_binner.hpp"
 #include "fvm_lowered_cell.hpp"
 #include "label_resolution.hpp"
-#include "mc_cell_group.hpp"
+#include "mc_cell_group_distributed.hpp"
 #include "profile/profiler_macro.hpp"
 #include "sampler_map.hpp"
 #include "util/filter.hpp"
@@ -30,7 +30,7 @@ namespace arb {
 ARB_DEFINE_LEXICOGRAPHIC_ORDERING(arb::target_handle,(a.mech_id,a.mech_index,a.intdom_index),(b.mech_id,b.mech_index,b.intdom_index))
 ARB_DEFINE_LEXICOGRAPHIC_ORDERING(arb::deliverable_event,(a.time,a.handle,a.weight),(b.time,b.handle,b.weight))
 
-mc_cell_group::mc_cell_group(const std::vector<cell_gid_type>& gids,
+    mc_cell_group_distributed::mc_cell_group_distributed(const std::vector<cell_gid_type>& gids,
                              const recipe& rec,
                              cell_label_range& cg_sources,
                              cell_label_range& cg_targets,
@@ -70,7 +70,7 @@ mc_cell_group::mc_cell_group(const std::vector<cell_gid_type>& gids,
     spike_sources_.shrink_to_fit();
 }
 
-void mc_cell_group::reset() {
+void mc_cell_group_distributed::reset() {
     spikes_.clear();
 
     sample_events_.clear();
@@ -85,7 +85,7 @@ void mc_cell_group::reset() {
     lowered_->reset();
 }
 
-void mc_cell_group::set_binning_policy(binning_kind policy, time_type bin_interval) {
+void mc_cell_group_distributed::set_binning_policy(binning_kind policy, time_type bin_interval) {
     binners_.clear();
     binners_.resize(gids_.size(), event_binner(policy, bin_interval));
 }
@@ -214,7 +214,7 @@ static void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-static void run_samples(
+static  void run_samples(
     const fvm_probe_weighted_multi& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -304,7 +304,7 @@ static void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-static void run_samples(
+static  void run_samples(
     const fvm_probe_membrane_currents& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -389,7 +389,7 @@ static void run_samples(
     std::visit([&](auto& x) {run_samples(x, sc, raw_times, raw_samples, sample_records, scratch); }, sc.pdata_ptr->info);
 }
 
-void mc_cell_group::advance(epoch ep, time_type dt, const event_lane_subrange& event_lanes) {
+void mc_cell_group_distributed::advance(epoch ep, time_type dt, const event_lane_subrange& event_lanes) {
     time_type tstart = lowered_->time();
 
     // Bin and collate deliverable events from event lanes.
@@ -555,7 +555,7 @@ void mc_cell_group::advance(epoch ep, time_type dt, const event_lane_subrange& e
     }
 }
 
-void mc_cell_group::add_sampler(sampler_association_handle h, cell_member_predicate probe_ids,
+void mc_cell_group_distributed::add_sampler(sampler_association_handle h, cell_member_predicate probe_ids,
                                 schedule sched, sampler_function fn, sampling_policy policy)
 {
     std::lock_guard<std::mutex> guard(sampler_mex_);
@@ -569,17 +569,17 @@ void mc_cell_group::add_sampler(sampler_association_handle h, cell_member_predic
     }
 }
 
-void mc_cell_group::remove_sampler(sampler_association_handle h) {
+void mc_cell_group_distributed::remove_sampler(sampler_association_handle h) {
     std::lock_guard<std::mutex> guard(sampler_mex_);
     sampler_map_.erase(h);
 }
 
-void mc_cell_group::remove_all_samplers() {
+void mc_cell_group_distributed::remove_all_samplers() {
     std::lock_guard<std::mutex> guard(sampler_mex_);
     sampler_map_.clear();
 }
 
-std::vector<probe_metadata> mc_cell_group::get_probe_metadata(cell_member_type probe_id) const {
+std::vector<probe_metadata> mc_cell_group_distributed::get_probe_metadata(cell_member_type probe_id) const {
     // Probe associations are fixed after construction, so we do not need to grab the mutex.
 
     std::optional<probe_tag> maybe_tag = util::value_by_key(probe_map_.tag, probe_id);

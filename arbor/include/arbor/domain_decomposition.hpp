@@ -21,6 +21,12 @@ struct group_description {
     /// The back end on which the cell_group is to run.
     backend_kind backend;
 
+    /// In case of distribution the domain's this group should be distributed over
+    std::vector<int> domains;
+
+    // Celloff set // in case of distribution the cell offset of this group should be known
+    size_t gid_local_offset = 0;
+
     group_description(cell_kind k, std::vector<cell_gid_type> g, backend_kind b):
         kind(k), gids(std::move(g)), backend(b)
     {}

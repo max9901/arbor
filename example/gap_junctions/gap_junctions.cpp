@@ -32,6 +32,7 @@
 #include <sup/json_meter.hpp>
 #include <sup/json_params.hpp>
 
+#include <iostream>
 using namespace arborio::literals;
 
 #ifdef ARB_MPI_ENABLED
@@ -41,8 +42,8 @@ using namespace arborio::literals;
 
 struct gap_params {
     std::string name = "default";
-    unsigned n_cables = 3;
-    unsigned n_cells_per_cable = 5;
+    unsigned n_cables = 1;
+    unsigned n_cells_per_cable = 10;
     double stim_duration = 30;
     double event_min_delay = 10;
     double event_weight = 0.05;
@@ -78,7 +79,7 @@ public:
     }
 
     cell_kind get_cell_kind(cell_gid_type gid) const override {
-        return cell_kind::cable;
+        return cell_kind::cable_distributed;
     }
 
     std::vector<arb::cell_connection> connections_on(cell_gid_type gid) const override {
@@ -134,7 +135,6 @@ private:
 int main(int argc, char** argv) {
     try {
         bool root = true;
-
 #ifdef ARB_MPI_ENABLED
         arbenv::with_mpi guard(argc, argv, false);
         unsigned nt = arbenv::default_concurrency();
@@ -153,13 +153,15 @@ int main(int argc, char** argv) {
         arb::profile::profiler_initialize(context);
 #endif
 
-        std::cout << sup::mask_stream(root);
+//        dont mask streams
+//        std::cout << sup::mask_stream(root);
 
         // Print a banner with information about hardware configuration
         std::cout << "gpu:      " << (has_gpu(context)? "yes": "no") << "\n";
         std::cout << "threads:  " << num_threads(context) << "\n";
         std::cout << "mpi:      " << (has_mpi(context)? "yes": "no") << "\n";
-        std::cout << "ranks:    " << num_ranks(context) << "\n" << std::endl;
+        std::cout << "ranks:    " << num_ranks(context) << "\n";
+        std::cout << "rank:    " <<  rank(context) << "\n" << std::endl;
 
         auto params = read_options(argc, argv);
 
@@ -169,13 +171,38 @@ int main(int argc, char** argv) {
         // Create an instance of our recipe.
         gj_recipe recipe(params);
 
-        auto decomp = arb::partition_load_balance(recipe, context);
+        arb::partition_hint dis_hints;
+        dis_hints.number_of_domains_per_group = num_ranks(context);
 
-        // Construct the model.
+        arb::partition_hint_map hints;
+        hints.insert({arb::cell_kind::cable_distributed, dis_hints});
+
+//        here we should be able to give a group multiple ranks with offset aka the hints..?
+        auto decomp = arb::partition_load_balance(recipe, context,hints);
+
+//        list how the domain decomposition went
+        std::cout << rank(context) << " number of domains:      " <<  decomp.num_domains << std::endl;
+        std::cout << rank(context) << " number of groups:       " <<  decomp.groups.size() << std::endl;            // this is local!
+        std::cout << rank(context) << " number of local cells:  " <<  decomp.num_local_cells << std::endl;
+        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells << std::endl;
+        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells << std::endl;
+
+
+        if(decomp.groups.size()) {
+            int count = 0;
+            for (auto &dit: decomp.groups) {
+                std::cout << rank(context) << " local group " << count << " : starting gid " << dit.gids[0] << " : ";
+                for (auto &value:dit.domains)
+                    std::cout << " " << value;
+                std::cout << std::endl;
+                count++;
+            }
+        }
+
+//        Construct the model.
         arb::simulation sim(recipe, decomp, context);
 
         // Set up the probe that will measure voltage in the cell.
-
         auto sched = arb::regular_schedule(0.025);
         // This is where the voltage samples will be stored as (time, value) pairs
         std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells);
@@ -231,9 +258,10 @@ int main(int argc, char** argv) {
             write_trace_json(voltage_traces, arb::rank(context));
         }
 
-        auto report = arb::profile::make_meter_report(meters, context);
-        std::cout << report;
+//        auto report = arb::profile::make_meter_report(meters, context);
+//        std::cout << report;
     }
+
     catch (std::exception& e) {
         std::cerr << "exception caught in gap junction miniapp:\n" << e.what() << "\n";
         return 1;
