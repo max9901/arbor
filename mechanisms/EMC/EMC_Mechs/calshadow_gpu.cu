@@ -2,6 +2,7 @@
 #include <arbor/gpu/math_cu.hpp>
 #include <arbor/gpu/reduce_by_key.hpp>
 #include <arbor/mechanism_abi.h>
+#include <stdio.h>
 
 namespace arb {
 namespace EMC_catalogue {
@@ -137,12 +138,22 @@ void init(arb_mechanism_ppack params_) {
     int tid_ = threadIdx.x + blockDim.x*blockIdx.x;
     PPACK_IFACE_BLOCK;
     if (tid_<n_) {
-        for (int j_ = 0; j_ < n_; ++j_) {
-            // Sorry for O(n^2), but this is portably across CPU & GPU
-            if (_pp_var_neuron_gid[j_] == _pp_var_other_cell[tid_]) {
-                _pp_var_mirror_cv[tid_] = j_;
+        arb_size_type me = tid_;
+        _pp_var_mirror_cv[me] = -1;
+        for (int other = 0; other < n_; ++other) {
+            // Sorry for O(n^2), but this is portable across CPU & GPU
+            if (_pp_var_neuron_gid[other] == _pp_var_other_cell[me]) {
+                _pp_var_mirror_cv[me] = other;
                 break;
             }
+        }
+        if (_pp_var_mirror_cv[me] == -1) {
+            printf("ERROR calpid: could not match neuron %d : gid=%d other=%d with another neuron\n",
+                    (int)tid_,
+                    (int)_pp_var_neuron_gid[me],
+                    (int)_pp_var_other_cell[me]);
+            printf("Force cellgroups?\n");
+            _pp_var_mirror_cv[me] = _pp_var_mirror_cv[me*12313123131]; // just crash
         }
         auto node_indexi_ = _pp_var_node_index[tid_];
         arb_value_type v = _pp_var_vec_v[node_indexi_];
@@ -153,7 +164,7 @@ void init(arb_mechanism_ppack params_) {
         _pp_var_k_q_lp[tid_] = _pp_var_k_inf[tid_];
         _pp_var_l_q[tid_] = _pp_var_l_inf[tid_];
         _pp_var_gmax_actual[tid_] = _pp_var_gmax[tid_];
-        _pp_var_timer[tid_] =  2.0;
+        _pp_var_timer[tid_] =  2.0 + tid_ / 1000;
         _pp_var_vamp[tid_] =  0.;
         _pp_var_totalTime[tid_] =  0.;
         _pp_var_stopped[tid_] =  0.;
@@ -207,6 +218,7 @@ void compute_currents(arb_mechanism_ppack params_) {
         arb_value_type current_ = 0;
         arb_value_type v = _pp_var_vec_v[node_indexi_];
         arb_value_type ica = 0;
+        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         _pp_var_conductanceScale[tid_] =  1.0;
         _pp_var_fopen0[tid_] = _pp_var_k_fcond[tid_]*_pp_var_l_fcond[tid_];
         _pp_var_fopen[tid_] = _pp_var_conductanceScale[tid_]*_pp_var_fopen0[tid_];
@@ -219,6 +231,7 @@ void compute_currents(arb_mechanism_ppack params_) {
         if (v<_pp_var_vmin[tid_]) {
             _pp_var_vmin[tid_] = v;
         }
+        _pp_var_vamp[tid_] = _pp_var_vmax[tid_]-_pp_var_vmin[tid_];
         if (_pp_var_stopped[tid_]< 0.5&&_pp_var_totalTime[tid_]>_pp_var_stopAfter[tid_]) {
             _pp_var_stopped[tid_] =  1.0;
             _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]*_pp_var_gmaxScaleAfterStop[tid_];
@@ -226,65 +239,76 @@ void compute_currents(arb_mechanism_ppack params_) {
             _pp_var_vmax[tid_] = v;
         }
 
+        if (_pp_var_on_shadow_network[i_] > 0.5) {
+            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[j_];
+        }
+
         if (_pp_var_stopped[tid_]< 0.5&&_pp_var_timer[tid_]< 0.) {
-            _pp_var_timer[tid_] =  1.0;
-            _pp_var_vamp[tid_] = _pp_var_vmax[tid_]-_pp_var_vmin[tid_];
+            _pp_var_timer[tid_] =  1.0 + (tid_ / 10000.);
             if (_pp_var_on_shadow_network[i_] < 0.5) {
                 if (_pp_var_silenceAfter[tid_]> 0.&&_pp_var_totalTime[tid_]>_pp_var_silenceAfter[tid_]) {
                     if (_pp_var_vamp[tid_]>_pp_var_target_vamp_silent[tid_]) {
-                        _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.002;
+                        _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.002 * (dt / 0.025);
                     }
                 }
                 else {
-
                     // Current cell (non-shadow)
+                    bool ok = true;
                     if (_pp_var_target_vamp_max[tid_]> 3.0) {
                         if (_pp_var_vamp[tid_]<_pp_var_target_vamp_min[tid_]) {
                             if (_pp_var_k_q_lp[tid_]> 0.77000000000000002) {
-                                _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.0030000000000000001;
+                                _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_] - 0.003 * (dt / 0.025);
+                                ok = false;
                             }
                             else {
-                                _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]+ 0.0030000000000000001;
+                                _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_] + 0.003 * (dt / 0.025);
+                                ok = false;
                             }
                         }
                         if (_pp_var_vamp[tid_]>_pp_var_target_vamp_max[tid_]&&_pp_var_vmax[tid_]< 0.) {
-                            _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.001;
+                            _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.001 * (dt / 0.025);
+                            ok = false;
                         }
                     }
                     else {
                         if (_pp_var_vamp[tid_]>_pp_var_target_vamp_max[tid_]) {
-                            _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.001;
+                            _pp_var_gmax_actual[tid_] = _pp_var_gmax_actual[tid_]- 0.001 * (dt / 0.025);
+                            ok = false;
                         }
                     }
 
-                    // Other cell (shadow)
-                    if (_pp_var_target_vamp_max[j_] > 3.0) {
-                        if (_pp_var_vamp[j_] < _pp_var_target_vamp_min[j_]) {
-                            if (_pp_var_k_q_lp[j_] > 0.77) {
-                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.003/2.0;
+                    if (ok) {
+                        // Other cell (shadow)
+                        if (_pp_var_target_vamp_max[j_] > 3.0) {
+                            if (_pp_var_vamp[j_] < _pp_var_target_vamp_min[j_]) {
+                                if (_pp_var_k_q_lp[j_] > 0.77) {
+                                    _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.003/2.0 * (dt / 0.025);
+                                }
+                                else {
+                                    _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] + 0.003/2.0 * (dt / 0.025);
+                                }
                             }
-                            else {
-                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] + 0.003/2.0;
+                            if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]&&_pp_var_vmax[j_] < 0.) {
+                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001/2.0 * (dt / 0.025);
                             }
                         }
-                        if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]&&_pp_var_vmax[j_] < 0.) {
-                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001/2.0;
-                        }
-                    }
-                    else {
-                        if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]) {
-                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001/2.0;
+                        else {
+                            if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]) {
+                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001/2.0 * (dt / 0.025);
+                            }
                         }
                     }
 
                 }
-                if (_pp_var_gmax_actual[tid_]< 0.) {
+                if (_pp_var_gmax_actual[tid_] < 0.) {
                     _pp_var_gmax_actual[tid_] =  0.;
                 }
+                _pp_var_gmax_actual[j_] = _pp_var_gmax_actual[i_];
+                _pp_var_vmin[tid_] = v;
+                _pp_var_vmax[tid_] = v;
+                _pp_var_vmin[j_] = v;
+                _pp_var_vmax[j_] = v;
             }
-            _pp_var_vmin[tid_] = v;
-            _pp_var_vmax[tid_] = v;
-            _pp_var_gmax_actual[j_] = _pp_var_gmax_actual[i_];
         }
         if (_pp_var_stopped[tid_]> 0.5) {
             _pp_var_vamp[tid_] = _pp_var_vmax[tid_]-_pp_var_vmin[tid_];

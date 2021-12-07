@@ -135,6 +135,14 @@ static void init(arb_mechanism_ppack* pp) {
             std::cout << "No correspondence between neurons and mirror neurons" << std::endl;
             exit(42);
         }
+        std::cout <<
+            " cv: " << i_ <<
+            " gid: " << _pp_var_neuron_gid[i_]<<
+            " oth: " << _pp_var_other_cell[i_] <<
+            " othcv: " << _pp_var_mirror_cv[i_] <<
+            " osn: " << _pp_var_on_shadow_network[i_] <<
+            " min/max:" << _pp_var_target_vamp_min[i_] << "/" << _pp_var_target_vamp_max[i_] <<
+            std::endl;
     }
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         auto node_indexi_ = _pp_var_node_index[i_];
@@ -186,6 +194,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
         auto ion_ca_indexi_ = _pp_var_ion_ca_index[i_];
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_size_type j_ = (arb_size_type)_pp_var_mirror_cv[i_];
+        arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type conductivity_ = 0;
         arb_value_type current_ = 0;
         arb_value_type v = _pp_var_vec_v[node_indexi_];
@@ -196,76 +205,74 @@ static void compute_currents(arb_mechanism_ppack* pp) {
         _pp_var_g[i_] = _pp_var_conductance[i_]*_pp_var_fopen[i_];
         _pp_var_gion[i_] = _pp_var_gmax_actual[i_]*_pp_var_fopen[i_];
         ica = _pp_var_gion[i_]*(v-_pp_var_eca[i_]);
+        if (_pp_var_timer[i_] > 0.75) {
+            // discard transient
+            _pp_var_vmin[i_] = v;
+            _pp_var_vmax[i_] = v;
+        }
         if (v > _pp_var_vmax[i_]) {
             _pp_var_vmax[i_] = v;
         }
         if (v < _pp_var_vmin[i_]) {
             _pp_var_vmin[i_] = v;
         }
+        _pp_var_vamp[i_] = _pp_var_vmax[i_]-_pp_var_vmin[i_];
         if (_pp_var_stopped[i_] < 0.5&&_pp_var_totalTime[i_] > _pp_var_stopAfter[i_]) {
             _pp_var_stopped[i_] =  1.0;
             _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_]*_pp_var_gmaxScaleAfterStop[i_];
             _pp_var_vmin[i_] = v;
             _pp_var_vmax[i_] = v;
         }
-        if (_pp_var_stopped[i_]< 0.5&&_pp_var_timer[i_]< 0.) {
-            _pp_var_timer[i_] =  1.0;
+        if (_pp_var_stopped[i_]< 0.5&&_pp_var_timer[i_]< 0. && _pp_var_on_shadow_network[i_] < 0.5) {
+            _pp_var_timer[j_] = _pp_var_timer[i_] = 1.5 + (fmod(i_*3.4231423, 0.455));
             _pp_var_vamp[i_] = _pp_var_vmax[i_]-_pp_var_vmin[i_];
-            if (_pp_var_on_shadow_network[i_] < 0.5) {
-                if (_pp_var_silenceAfter[i_] > 0.&&_pp_var_totalTime[i_]>_pp_var_silenceAfter[i_]) {
-                    if (_pp_var_vamp[i_]>_pp_var_target_vamp_silent[i_]) {
-                        _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_]- 0.002;
+            float f = 1 * (1 - _pp_var_totalTime[i_] / _pp_var_stopAfter[i_]);
+            // Current cell (non-shadow)
+            bool ok = true;
+
+            if (_pp_var_vmax[i_] > 0) {
+                // we don't want spikes
+                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - f * 0.003 * 2 * (dt / 0.025);
+            } else if (_pp_var_vamp[i_] < _pp_var_target_vamp_min[i_]) {
+                if (_pp_var_k_q_lp[i_] > 0.77) {
+                    _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - f * 0.003 * 2 * (dt / 0.025);
+                    ok = false;
+                }
+                else {
+                    _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] + f * 0.003 * 2 * (dt / 0.025);
+                    ok = false;
+                }
+            } else if (_pp_var_vamp[i_] > _pp_var_target_vamp_max[i_]&&_pp_var_vmax[i_] < 0.) {
+                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - f * 0.001 * 2 * (dt / 0.025);
+                ok = false;
+            }
+
+            float f2 = f * 2;
+            if (ok) {
+                // Other cell (shadow)
+                if (_pp_var_target_vamp_max[j_] > 3.0) {
+                    if (_pp_var_vamp[j_] < _pp_var_target_vamp_min[j_]) {
+                        if (_pp_var_k_q_lp[j_] > 0.77) {
+                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - f2 * 0.003/2.0 * (dt / 0.025);
+                        }
+                        else {
+                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] + f2 * 0.003/2.0 * (dt / 0.025);
+                        }
+                    }
+                    if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]&&_pp_var_vmax[j_] < 0.) {
+                        _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - f2 * 0.001/2.0 * (dt / 0.025);
                     }
                 }
                 else {
-
-                    // Current cell (non-shadow)
-                    if (_pp_var_target_vamp_max[i_] > 3.0) {
-                        if (_pp_var_vamp[i_] < _pp_var_target_vamp_min[i_]) {
-                            if (_pp_var_k_q_lp[i_] > 0.77) {
-                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.003;
-                            }
-                            else {
-                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] + 0.003;
-                            }
-                        }
-                        if (_pp_var_vamp[i_] > _pp_var_target_vamp_max[i_]&&_pp_var_vmax[i_] < 0.) {
-                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001;
-                        }
+                    if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]) {
+                        _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - f2 * 0.001/2.0 * (dt / 0.025);
                     }
-                    else {
-                        if (_pp_var_vamp[i_] > _pp_var_target_vamp_max[i_]) {
-                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001;
-                        }
-                    }
-
-                    // Other cell (shadow)
-                    if (_pp_var_target_vamp_max[j_] > 3.0) {
-                        if (_pp_var_vamp[j_] < _pp_var_target_vamp_min[j_]) {
-                            if (_pp_var_k_q_lp[j_] > 0.77) {
-                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.003/2.0;
-                            }
-                            else {
-                                _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] + 0.003/2.0;
-                            }
-                        }
-                        if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]&&_pp_var_vmax[j_] < 0.) {
-                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001/2.0;
-                        }
-                    }
-                    else {
-                        if (_pp_var_vamp[j_] > _pp_var_target_vamp_max[j_]) {
-                            _pp_var_gmax_actual[i_] = _pp_var_gmax_actual[i_] - 0.001/2.0;
-                        }
-                    }
-
-                }
-                if (_pp_var_gmax_actual[i_]< 0.) {
-                    _pp_var_gmax_actual[i_] =  0.;
                 }
             }
-            _pp_var_vmin[i_] = v;
-            _pp_var_vmax[i_] = v;
+
+            if (_pp_var_gmax_actual[i_] < 0.) {
+                _pp_var_gmax_actual[i_] =  0.;
+            }
             _pp_var_gmax_actual[j_] = _pp_var_gmax_actual[i_];
         }
         if (_pp_var_stopped[i_]> 0.5) {
