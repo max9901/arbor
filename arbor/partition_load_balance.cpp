@@ -340,12 +340,14 @@ domain_decomposition partition_load_balance(
     // global all-to-all to gather a local copy of the global gid list on each node.
     auto global_gids = ctx->distributed->gather_gids(local_gids);
 
+
 // MAX TOEVOEGING ::
 //    /// for distribution of cell groups exploration work. will be set directly for now
 //    size_t my_domain = 0;
 //    std::vector<int> domains;
 //    std::vector<int> gid_local_offset
     for(auto &group: groups) {
+        group.gids_global = group.gids; //push gids into the global gids. we can now overright group.gids to a local version.
         if(group.kind != arb::cell_kind::cable_distributed){
             //never needed but stil nice to fill it up
             group.my_domain = domain_id;
@@ -369,6 +371,28 @@ domain_decomposition partition_load_balance(
                     }
                 }
             }
+            //calculate the local gids.
+            //find my domain index.
+            uint index_myDomain;
+            for (index_myDomain = 0; index_myDomain < group.domains.size(); index_myDomain++){
+                if(group.domains[index_myDomain] == group.my_domain){
+                    break;
+                }
+            }
+            //calculate wich subgroup we are working on
+            const std::size_t offset   = group.gid_local_offsets[index_myDomain];
+            uint Lastgid;  //exclusive last value !!
+            if(group.domains.back() != group.my_domain){
+                Lastgid = group.gids[group.gid_local_offsets[index_myDomain+1]];
+            }else{
+                Lastgid = group.gids_global.size();
+            }
+            std::vector<cell_gid_type>::const_iterator first = group.gids.begin() + offset;
+            std::vector<cell_gid_type>::const_iterator last  = group.gids.begin()  + Lastgid;
+
+            //TODO very ugly
+            auto *a = new std::vector<cell_gid_type>(first, last);
+            group.gids = *a;
         }
     }
 

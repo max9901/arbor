@@ -119,6 +119,7 @@ label_resolution_map::label_resolution_map(const cell_labels_and_gids& clg) {
         }
     }
 }
+
 // variant state methods
 lid_hopefully round_robin_state::update(const label_resolution_map::range_set& range_set) {
     auto lid = range_set.at(state);

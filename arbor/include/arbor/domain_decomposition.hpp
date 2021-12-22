@@ -10,19 +10,21 @@
 
 namespace arb {
 
-/// Metadata for a local cell group.
+// Metadata for a local cell group.
 struct group_description {
     /// The kind of cell in the group. All cells in a cell_group have the same type.
     cell_kind kind;
 
     /// The gids of the cells in the cell_group. Does not need to be sorted.
     std::vector<cell_gid_type> gids;
+    std::vector<cell_gid_type> gids_global;
 
     /// The back end on which the cell_group is to run.
     backend_kind backend;
 
     /// for distribution of cell groups exploration work. will be set directly for now
     size_t my_domain = 0;
+    size_t index_my_domain = 0;
     std::vector<int> domains;
     std::vector<int> gid_local_offsets;
 

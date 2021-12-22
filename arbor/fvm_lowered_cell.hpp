@@ -14,6 +14,7 @@
 #include <arbor/morph/primitives.hpp>
 #include <arbor/recipe.hpp>
 #include <arbor/util/any_ptr.hpp>
+#include <arbor/domain_decomposition.hpp>
 
 #include "backends/event.hpp"
 #include "backends/threshold_crossing.hpp"
@@ -193,6 +194,14 @@ struct probe_association_map {
     }
 };
 
+//    sources are the threshold_detectors, they're the source or a synaptic connection.
+//    targets are synapse mechanisms, they're the target of a synaptic connection.
+//    decor.place('"synapse_site"', arbor.synapse('expsyn'), 'syn')
+//    decor.place('"root"', arbor.spike_detector(-10), 'detector')
+//    Each is given a label, in this case, syn and detector respectively
+//            but each of there labels can be associated to multiple "sites"
+//    source_data basically records for each cell in the cell_group, the available threshold detectors and their indices.
+
 struct fvm_initialization_data {
     // Map from gid to integration domain id
     std::vector<fvm_index_type> cell_to_intdom;
@@ -214,7 +223,6 @@ struct fvm_initialization_data {
 };
 
 // Common base class for FVM implementation on host or gpu back-end.
-
 struct fvm_lowered_cell {
     virtual void reset() = 0;
 
@@ -236,5 +244,6 @@ struct fvm_lowered_cell {
 using fvm_lowered_cell_ptr = std::unique_ptr<fvm_lowered_cell>;
 
 fvm_lowered_cell_ptr make_fvm_lowered_cell(backend_kind p, const execution_context& ctx);
+fvm_lowered_cell_ptr make_fvm_lowered_distributed_cell(backend_kind p, const execution_context& ctx, const group_description& groupDescription);
 
 } // namespace arb

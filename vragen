@@ -1,0 +1,4 @@
+what is the bin_interval ?
+    void simulation::set_binning_policy(binning_kind policy, time_type bin_interval) {
+        impl_->set_binning_policy(policy, bin_interval);
+    }

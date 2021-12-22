@@ -47,7 +47,7 @@ struct gap_params {
     double stim_duration = 30;
     double event_min_delay = 10;
     double event_weight = 0.05;
-    double sim_duration = 100;
+    double sim_duration = 1;
     bool print_all = true;
 };
 
@@ -213,12 +213,12 @@ int main(int argc, char** argv) {
         }
 // debug
 
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Barrier(MPI_COMM_WORLD);
-        exit(0);
-
 //        Construct the model.
         arb::simulation sim(recipe, decomp, context);
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
+        std::cout << "created the arbor model " << std::endl;
 
         // Set up the probe that will measure voltage in the cell.
         auto sched = arb::regular_schedule(0.025);
@@ -229,6 +229,7 @@ int main(int argc, char** argv) {
         unsigned j=0;
         for (auto g : decomp.groups) {
             for (auto i : g.gids) {
+                std::cout << "attachin a probe to gid: " << i << std::endl;
                 sim.add_sampler(arb::one_probe({i, 0}), sched, arb::make_simple_sampler(voltage_traces[j++]));
             }
         }
@@ -271,13 +272,17 @@ int main(int argc, char** argv) {
             }
         }
 
+        std::cout << "write samples to a json file" << std::endl;
         // Write the samples to a json file.
         if (params.print_all) {
             write_trace_json(voltage_traces, arb::rank(context));
         }
 
-//        auto report = arb::profile::make_meter_report(meters, context);
-//        std::cout << report;
+        auto report = arb::profile::make_meter_report(meters, context);
+        std::cout << report;
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
+        std::cout << " finsished cleaning up now " << std::endl;
     }
 
     catch (std::exception& e) {

@@ -17,6 +17,7 @@ set(arbor_sources
     event_binner.cpp
     fvm_layout.cpp
     fvm_lowered_cell_impl.cpp
+    fvm_lowered_distributed_cell_impl.cpp
     hardware/memory.cpp
     hardware/power.cpp
     io/locked_ostream.cpp

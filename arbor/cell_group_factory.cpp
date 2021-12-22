@@ -3,6 +3,7 @@
 #include <arbor/common_types.hpp>
 #include <arbor/recipe.hpp>
 
+
 #include "benchmark_cell_group.hpp"
 #include "cell_group.hpp"
 #include "cell_group_factory.hpp"
@@ -21,7 +22,7 @@ cell_group_ptr make_cell_group(Args&&... args) {
 }
 
 cell_group_factory cell_kind_implementation(
-        cell_kind ck, backend_kind bk, const execution_context& ctx)
+        cell_kind ck, backend_kind bk, const execution_context& ctx, const group_description& groupDescription)
 {
     using gid_vector = std::vector<cell_gid_type>;
 
@@ -32,8 +33,8 @@ cell_group_factory cell_kind_implementation(
         };
 
     case cell_kind::cable_distributed:
-        return [bk, ctx](const gid_vector& gids, const recipe& rec, cell_label_range& cg_sources, cell_label_range& cg_targets) {
-            return make_cell_group<mc_cell_group_distributed>(gids, rec, cg_sources, cg_targets, make_fvm_lowered_cell(bk, ctx));
+        return [bk, ctx, groupDescription](const gid_vector& gids, const recipe& rec, cell_label_range& cg_sources, cell_label_range& cg_targets) {
+            return make_cell_group<mc_cell_group_distributed>(gids, rec, cg_sources, cg_targets, make_fvm_lowered_distributed_cell(bk, ctx, groupDescription));
         };
 
     case cell_kind::spike_source:

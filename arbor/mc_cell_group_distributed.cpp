@@ -25,6 +25,9 @@
 #include "util/range.hpp"
 #include "util/span.hpp"
 
+//debug
+#include "iostream"
+
 namespace arb {
 
 ARB_DEFINE_LEXICOGRAPHIC_ORDERING(arb::target_handle,(a.mech_id,a.mech_index,a.intdom_index),(b.mech_id,b.mech_index,b.intdom_index))
@@ -37,15 +40,19 @@ ARB_DEFINE_LEXICOGRAPHIC_ORDERING(arb::deliverable_event,(a.time,a.handle,a.weig
                              fvm_lowered_cell_ptr lowered):
     gids_(gids), lowered_(std::move(lowered))
 {
+
+    //todo should fix this dont
     // Default to no binning of events
     set_binning_policy(binning_kind::none, 0);
+
 
     // Build lookup table for gid to local index.
     for (auto i: util::count_along(gids_)) {
         gid_index_map_[gids_[i]] = i;
     }
 
-    // Construct cell implementation, retrieving handles and maps.
+    //gids_ != to gids because we only need to build our subset here.
+    // Construct cell implementation, retrieving handles and maps.;
     auto fvm_info = lowered_->initialize(gids_, rec);
 
     // Propagate source and target ranges to the simulator object
@@ -57,9 +64,11 @@ ARB_DEFINE_LEXICOGRAPHIC_ORDERING(arb::deliverable_event,(a.time,a.handle,a.weig
     cell_to_intdom_ = std::move(fvm_info.cell_to_intdom);
     probe_map_ = std::move(fvm_info.probe_map);
 
+
     // Create lookup structure for target ids.
     util::make_partition(target_handle_divisions_,
         util::transform_view(gids_, [&](cell_gid_type i) { return fvm_info.num_targets[i]; }));
+
 
     // Create a list of the global identifiers for the spike sources
     for (auto source_gid: gids_) {
@@ -526,8 +535,10 @@ void mc_cell_group_distributed::advance(epoch ep, time_type dt, const event_lane
     util::stable_sort_by(sample_events, [](const sample_event& ev) { return event_index(ev); });
     PL();
 
+
     // Run integration and collect samples, spikes.
     auto result = lowered_->integrate(ep.t1, dt, staged_events_, std::move(sample_events));
+
 
     // For each sampler callback registered in `call_info`, construct the
     // vector of sample entries from the lowered cell sample times and values
