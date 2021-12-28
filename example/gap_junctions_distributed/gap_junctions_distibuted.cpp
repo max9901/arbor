@@ -116,13 +116,15 @@ public:
         // Soma is connected to the prev cell's dendrite
         // Dendrite is connected to the next cell's soma
         // Gap junction conductance in μS
+//        double weight = 0.015;
+        double weight = 0;
         if (next_cell < cable_end) {
             conns.push_back(arb::gap_junction_connection({(cell_gid_type)next_cell, "local_0", policy::assert_univalent},
-                                                         {"local_1", policy::assert_univalent}, 0.015));
+                                                         {"local_1", policy::assert_univalent}, weight));
         }
         if (prev_cell >= cable_begin) {
             conns.push_back(arb::gap_junction_connection({(cell_gid_type)prev_cell, "local_1", policy::assert_univalent},
-                                                         {"local_0", policy::assert_univalent}, 0.015));
+                                                         {"local_0", policy::assert_univalent}, weight));
         }
 
         return conns;

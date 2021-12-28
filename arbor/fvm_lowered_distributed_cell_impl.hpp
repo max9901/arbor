@@ -229,13 +229,13 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
 
     while (remaining_steps) {
 
-        std::cout << "remaining steps: "                                     << remaining_steps << " \t ";
-        std::cout << "state_->n_cv "                                         << state_->n_cv    << "\t";
-        std::cout << "state_->n_cv_global "                                  << state_->n_cv*groupDescription_.domains.size()    << "\t";
-
-        //todo
-        for(size_t i = 0 ; i < state_->n_cv*groupDescription_.domains.size(); i++){
-            std::cout << " " << state_->voltage[i];
+        { //debug
+            std::cout << "remaining steps: " << remaining_steps << " \t ";
+            std::cout << "state_->n_cv " << state_->n_cv << "\t";
+            std::cout << "state_->n_cv_global " << state_->n_cv * groupDescription_.domains.size() << "\t";
+            for (size_t i = 0; i < state_->n_cv * groupDescription_.domains.size(); i++) {
+                std::cout << " " << state_->voltage[i];
+            }
         }
 
         std::cout << std::endl;
@@ -295,19 +295,36 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
         PE(advance_integrate_matrix_build);
 
 //NEW TODO TODO
-//        //should be easy to offset.
-//        array* volt = &state_->voltage + groupDescription_.gid_local_offsets[groupDescription_.index_my_domain];
-//        matrix_.assemble(state_->dt_intdom, *volt, state_->current_density, state_->conductivity);
-//        matrix_.solve(*volt);
+        //should be easy to offset.
+        //time 2 because of the o
+//        array* volt = &state_->voltage[groupDescription_.volt_offset];
 
-// OLD
-        matrix_.assemble(state_->dt_intdom, state_->voltage, state_->current_density, state_->conductivity);
+        fvm_value_type *volt = state_->voltage.data() + groupDescription_.volt_offset;
+
+        auto matig = array(state_->n_cv);
+        for(int i = 0; i < state_->n_cv; i++){
+            matig[i] = state_->voltage[i + groupDescription_.volt_offset];
+        }
+
+        matrix_.assemble(state_->dt_intdom, volt, state_->current_density, state_->conductivity);
+
         PL();
         PE(advance_integrate_matrix_solve);
-        //easy to offset.
-        matrix_.solve(state_->voltage);
-//        matrix_.solve(*volt);
+        matrix_.solve(matig);
         PL();
+
+        for(int i = 0; i < state_->n_cv; i++){
+            state_->voltage[i + groupDescription_.volt_offset] = matig[i];
+        }
+
+//// OLD
+//        matrix_.assemble(state_->dt_intdom, state_->voltage, state_->current_density, state_->conductivity);
+//        PL();
+//        PE(advance_integrate_matrix_solve);
+//        //easy to offset.
+//        matrix_.solve(state_->voltage);
+////        matrix_.solve(*volt);
+//        PL();
 
         // Integrate mechanism state.
         for (auto& m: mechanisms_) {
@@ -338,7 +355,6 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
         state_->time_ptr = state_->time.data();
 
         // Check for non-physical solutions:
-
         if (check_voltage_mV_>0) {
             PE(advance_integrate_physicalcheck);
             assert_voltage_bounded(check_voltage_mV_);
@@ -455,7 +471,7 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     cells_local.resize(ncell_local);
     threading::parallel_for::apply(0,ncell_local, context_.thread_pool.get(),
            [&](cell_size_type i) {
-               auto gid = global_gids[i];
+               auto gid = global_gids[i+groupDescription_.gid_local_offsets[groupDescription_.index_my_domain]];
                try {
                    cells_local[i] = any_cast<cable_cell&&>(rec.get_cell_description(gid));
                }
@@ -603,6 +619,7 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     //local
     std::cout << "local discre" << std::endl;
     fvm_cv_discretization D_local  = fvm_cv_discretize(cells_local, global_props.default_parameters, context_);
+
     std::vector<index_type> cv_to_intdom_local(D_local.size());
     std::transform(D_local.geometry.cv_to_cell.begin(), D_local.geometry.cv_to_cell.end(), cv_to_intdom_local.begin(),
                    [&fvm_info_local](index_type i){ return fvm_info_local.cell_to_intdom[i]; });
@@ -656,10 +673,14 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     //sample event stream
     sample_events_ = sample_event_stream(nintdom_local);
 
+
+
     // just a Voltage vector offset is needed here !
     std::cout << "Start building the mech_data"<< std::endl;
     std::cout << "the voltage offset for domain : " << groupDescription_.my_domain << " equals : " << groupDescription_.volt_offset << std::endl;
     fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells_local, local_gids, gj_conns, D_local, groupDescription_.volt_offset, context_);
+
+    // push the init membrame potential to the offset
 
     // Fill src_to_spike and cv_to_cell vectors only if mechanisms with post_events implemented are present.
     post_events_ = mech_data.post_events;
@@ -690,9 +711,10 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
 
     //TODO ---> this will break with local
     // it looks like we can just set the cv to intdom to global to take into account for the .... niet waar iets van offset nodig
+    // we push in the global membrane potentials !
     state_ = std::make_unique<shared_state>(
             nintdom_local, ncell_local, max_detector, cv_to_intdom_local, std::move(D_local.geometry.cv_to_cell),
-            D_local.init_membrane_potential, D_local.temperature_K, D_local.diam_um, std::move(src_to_spike_local),
+            D_global.init_membrane_potential, D_local.temperature_K, D_local.diam_um, std::move(src_to_spike_local),
             data_alignment? data_alignment: 1u);
 
     //TODO TODO TODO TODO :d should work...
@@ -832,7 +854,10 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     }
 
     threshold_watcher_ = backend::voltage_watcher(*state_, detector_cv, detector_threshold, context_);
-    reset();
+
+    std::cout << "HIER Niet! : " << state_->voltage[0] << std::endl;
+
+    reset(); //this will actually populate the voltage vector
 
     std::cout << "HIER WEL ?  : " << state_->voltage[0] << std::endl;
 

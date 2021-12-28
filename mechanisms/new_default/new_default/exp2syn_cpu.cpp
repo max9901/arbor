@@ -36,7 +36,8 @@ static constexpr unsigned min_align_ = std::max(alignof(arb_value_type), alignof
 [[maybe_unused]] auto* _pp_var_temperature_degC  = pp->temperature_degC;\
 [[maybe_unused]] auto* _pp_var_diam_um           = pp->diam_um;\
 [[maybe_unused]] auto* _pp_var_time_since_spike  = pp->time_since_spike;\
-[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index;\
+[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index; \
+[[maybe_unused]] auto* _pp_var_node_index_voltage  = pp->node_index_voltage;\
 [[maybe_unused]] auto* _pp_var_peer_index        = pp->peer_index;\
 [[maybe_unused]] auto* _pp_var_multiplicity      = pp->multiplicity;\
 [[maybe_unused]] auto* _pp_var_weight            = pp->weight;\
@@ -74,7 +75,8 @@ static void init(arb_mechanism_ppack* pp) {
 static void advance_state(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
+        const auto& node_indexi_ = _pp_var_node_index[i_];
+        const auto& node_indexv_ = _pp_var_node_index_voltage[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type a_0_, ll0_, a_1_, ll2_, ll1_, ll3_;
         ll3_ =  0.;
@@ -95,10 +97,11 @@ static void advance_state(arb_mechanism_ppack* pp) {
 static void compute_currents(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
-        auto node_indexi_ = _pp_var_node_index[i_];
+        const auto& node_indexi_ = _pp_var_node_index[i_];
+        const auto& node_indexv_ = _pp_var_node_index_voltage[i_];
         arb_value_type conductivity_ = 0;
         arb_value_type current_ = 0;
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[node_indexv_];
         arb_value_type i = 0;
         i = (_pp_var_B[i_]-_pp_var_A[i_])*(v-_pp_var_e[i_]);
         current_ = i;

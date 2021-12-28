@@ -82,10 +82,9 @@ static void init(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         auto node_indexi_ = _pp_var_node_index[i_];
-        auto node_indexi_v_ = _pp_var_node_index_voltage[i_];
-        std::cout << "init nax with local: " << node_indexi_ << " and global "<< node_indexi_v_ << std::endl;
+        std::cout << "init nax with local: " << node_indexi_ << " and global "<< _pp_var_node_index_voltage[i_] << std::endl;
         arb_value_type celsius = _pp_var_temperature_degC[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         trates(pp, i_, v, _pp_var_sh[i_], celsius);
         _pp_var_m[i_] = _pp_var_minf[i_];
         _pp_var_h[i_] = _pp_var_hinf[i_];
@@ -104,7 +103,7 @@ static void advance_state(arb_mechanism_ppack* pp) {
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type celsius = _pp_var_temperature_degC[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         arb_value_type b_0_, a_0_, b_1_, ll0_, a_1_, ll2_, ll1_, ll3_;
         ll3_ =  0.;
         ll2_ =  0.;
@@ -133,7 +132,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
         arb_value_type conductivity_ = 0;
         arb_value_type current_ = 0;
         arb_value_type ena = _pp_var_ion_na.reversal_potential[ion_na_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
 
         arb_value_type ina = 0;
         _pp_var_thegna[i_] = _pp_var_gbar[i_]*_pp_var_m[i_]*_pp_var_m[i_]*_pp_var_m[i_]*_pp_var_h[i_];

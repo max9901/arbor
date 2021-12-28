@@ -36,7 +36,8 @@ static constexpr unsigned min_align_ = std::max(alignof(arb_value_type), alignof
 [[maybe_unused]] auto* _pp_var_temperature_degC  = pp->temperature_degC;\
 [[maybe_unused]] auto* _pp_var_diam_um           = pp->diam_um;\
 [[maybe_unused]] auto* _pp_var_time_since_spike  = pp->time_since_spike;\
-[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index;\
+[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index; \
+[[maybe_unused]] auto* _pp_var_node_index_voltage  = pp->node_index_voltage;\
 [[maybe_unused]] auto* _pp_var_peer_index        = pp->peer_index;\
 [[maybe_unused]] auto* _pp_var_multiplicity      = pp->multiplicity;\
 [[maybe_unused]] auto* _pp_var_weight            = pp->weight;\
@@ -68,7 +69,7 @@ static void init(arb_mechanism_ppack* pp) {
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type celsius = _pp_var_temperature_degC[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         trates(pp, i_, v, celsius);
         _pp_var_m[i_] = _pp_var_minf[i_];
     }
@@ -86,7 +87,7 @@ static void advance_state(arb_mechanism_ppack* pp) {
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
         arb_value_type celsius = _pp_var_temperature_degC[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         arb_value_type b_0_, a_0_, ll0_, ll1_;
         ll1_ =  0.;
         ll0_ =  0.;
@@ -107,7 +108,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
         arb_value_type conductivity_ = 0;
         arb_value_type current_ = 0;
         arb_value_type ek = _pp_var_ion_k.reversal_potential[ion_k_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         arb_value_type ik = 0;
         ik = _pp_var_gbar[i_]*_pp_var_m[i_]*(v-ek);
         current_ = ik;

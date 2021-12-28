@@ -36,7 +36,8 @@ static constexpr unsigned min_align_ = std::max(alignof(arb_value_type), alignof
 [[maybe_unused]] auto* _pp_var_temperature_degC  = pp->temperature_degC;\
 [[maybe_unused]] auto* _pp_var_diam_um           = pp->diam_um;\
 [[maybe_unused]] auto* _pp_var_time_since_spike  = pp->time_since_spike;\
-[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index;\
+[[maybe_unused]] auto* _pp_var_node_index        = pp->node_index; \
+[[maybe_unused]] auto* _pp_var_node_index_voltage  = pp->node_index_voltage;\
 [[maybe_unused]] auto* _pp_var_peer_index        = pp->peer_index;\
 [[maybe_unused]] auto* _pp_var_multiplicity      = pp->multiplicity;\
 [[maybe_unused]] auto* _pp_var_weight            = pp->weight;\
@@ -64,7 +65,7 @@ static void init(arb_mechanism_ppack* pp) {
     PPACK_IFACE_BLOCK;
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         auto node_indexi_ = _pp_var_node_index[i_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         arb_value_type celsius = _pp_var_temperature_degC[node_indexi_];
         arb_value_type r_3_, r_2_, r_1_, r_0_, beta, alpha;
         _pp_var_q10[i_] = pow( 3.0, (celsius- 6.2999999999999998)* 0.10000000000000001);
@@ -99,7 +100,7 @@ static void advance_state(arb_mechanism_ppack* pp) {
     for (arb_size_type i_ = 0; i_ < _pp_var_width; ++i_) {
         auto node_indexi_ = _pp_var_node_index[i_];
         arb_value_type dt = _pp_var_vec_dt[node_indexi_];
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         arb_value_type ba_2_, a_2_, r_2_, ba_1_, a_1_, r_3_, ll3_, ba_0_, ll5_, ll4_, ll2_, r_0_, r_1_, ll0_, ll1_, beta, alpha, sum, a_0_;
         ll5_ =  0.;
         ll4_ =  0.;
@@ -155,7 +156,7 @@ static void compute_currents(arb_mechanism_ppack* pp) {
         arb_value_type ik = 0;
         arb_value_type ena = _pp_var_ion_na.reversal_potential[ion_na_indexi_];
         arb_value_type ina = 0;
-        arb_value_type v = _pp_var_vec_v[node_indexi_];
+        arb_value_type v = _pp_var_vec_v[_pp_var_node_index_voltage[i_]];
         arb_value_type n_, m_, n2, gk;
         n_ = _pp_var_n[i_];
         m_ = _pp_var_m[i_];

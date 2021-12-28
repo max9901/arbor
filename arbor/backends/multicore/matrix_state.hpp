@@ -84,7 +84,7 @@ public:
     //   voltage         [mV]      (per control volume)
     //   current density [A.m^-2]  (per control volume)
     //   conductivity    [kS.m^-2] (per control volume)
-    void assemble(const_view dt_intdom, const_view voltage, const_view current, const_view conductivity) {
+    void assemble(const_view dt_intdom, fvm_value_type *voltage, const_view current, const_view conductivity) {
         auto cell_cv_part = util::partition_view(cell_cv_divs);
         const index_type ncells = cell_cv_part.size();
 
@@ -95,6 +95,7 @@ public:
             if (dt>0) {
                 value_type oodt_factor = 1e-3/dt; // [1/µs]
                 for (auto i: util::make_span(cell_cv_part[m])) {
+
                     auto area_factor = 1e-3*cv_area[i]; // [1e-9·m²]
 
                     auto gi = oodt_factor*cv_capacitance[i] + area_factor*conductivity[i]; // [μS]

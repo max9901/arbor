@@ -16,6 +16,9 @@
 #include "/home/max/Documents/ARBORMASTER/arbor_max/cmake-build-debug/mechanisms/generated/new_default/pas.hpp"
 #include "/home/max/Documents/ARBORMASTER/arbor_max/cmake-build-debug/mechanisms/generated/new_default/gj.hpp"
 
+//nly the CPU implementation works for now !
+
+
 namespace arb {
 
 mechanism_catalogue build_new_default_catalogue() {
