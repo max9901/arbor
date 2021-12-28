@@ -99,6 +99,7 @@ public:
         arb::cable_cell_global_properties a;
         a.default_parameters = arb::neuron_parameter_defaults;
         a.default_parameters.temperature_K = 308.15;
+        a.catalogue = (arb::mechanism_catalogue*)&arb::global_new_default_catalogue();
         return a;
     }
 
@@ -115,7 +116,6 @@ public:
         // Soma is connected to the prev cell's dendrite
         // Dendrite is connected to the next cell's soma
         // Gap junction conductance in μS
-
         if (next_cell < cable_end) {
             conns.push_back(arb::gap_junction_connection({(cell_gid_type)next_cell, "local_0", policy::assert_univalent},
                                                          {"local_1", policy::assert_univalent}, 0.015));
@@ -213,10 +213,10 @@ int main(int argc, char** argv) {
         }
 // debug
 
+
 //        Construct the model.
         arb::simulation sim(recipe, decomp, context);
 
-        MPI_Barrier(MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
         std::cout << "created the arbor model " << std::endl;
 
@@ -282,7 +282,9 @@ int main(int argc, char** argv) {
         std::cout << report;
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
-        std::cout << " finsished cleaning up now " << std::endl;
+        getchar();
+
+        std::cout << world_rank << " finsished cleaning up now " << std::endl;
     }
 
     catch (std::exception& e) {

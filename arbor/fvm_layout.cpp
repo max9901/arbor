@@ -22,6 +22,8 @@
 #include "util/transform.hpp"
 #include "util/unique.hpp"
 
+#include <iostream>
+
 namespace arb {
 
 using util::assign;
@@ -738,6 +740,7 @@ fvm_mechanism_data& append(fvm_mechanism_data& left, const fvm_mechanism_data& r
 
             L.kind = R.kind;
             append(L.cv, R.cv);
+            append(L.volt_cv, R.volt_cv);
             append(L.peer_cv, R.peer_cv);
             append(L.multiplicity, R.multiplicity);
             append(L.norm_area, R.norm_area);
@@ -821,6 +824,7 @@ fvm_mechanism_data fvm_build_mechanism_data(
     const cable_cell& cell,
     const std::vector<fvm_gap_junction>& gj_conns,
     const fvm_cv_discretization& D,
+    const cell_gid_type& volt_cv_offset,
     fvm_size_type cell_idx);
 
 fvm_mechanism_data fvm_build_mechanism_data(
@@ -829,11 +833,12 @@ fvm_mechanism_data fvm_build_mechanism_data(
     const std::vector<cell_gid_type>& gids,
     const std::unordered_map<cell_gid_type, std::vector<fvm_gap_junction>>& gj_conns,
     const fvm_cv_discretization& D,
+    const cell_gid_type& volt_cv_offset,
     const execution_context& ctx)
 {
     std::vector<fvm_mechanism_data> cell_mech(cells.size());
     threading::parallel_for::apply(0, cells.size(), ctx.thread_pool.get(), [&] (int i) {
-        cell_mech[i] = fvm_build_mechanism_data(gprop, cells[i], gj_conns.at(gids[i]), D, i);
+        cell_mech[i] = fvm_build_mechanism_data(gprop, cells[i], gj_conns.at(gids[i]), D, volt_cv_offset, i);
     });
 
     fvm_mechanism_data combined;
@@ -850,8 +855,13 @@ fvm_mechanism_data fvm_build_mechanism_data(
     const cable_cell& cell,
     const std::vector<fvm_gap_junction>& gj_conns,
     const fvm_cv_discretization& D,
+    const cell_gid_type& volt_cv_offset,
     fvm_size_type cell_idx)
 {
+
+    //TODO hit..
+    std::cout << "building cell: " << cell_idx << " with volt offset " << volt_cv_offset << std::endl;
+
     using size_type = fvm_size_type;
     using index_type = fvm_index_type;
     using value_type = fvm_value_type;
@@ -913,8 +923,8 @@ fvm_mechanism_data fvm_build_mechanism_data(
     std::unordered_map<std::string, mcable_map<double>> init_iconc_mask;
     std::unordered_map<std::string, mcable_map<double>> init_econc_mask;
 
-    // Density mechanisms:
 
+    // Density mechanisms:
     for (const auto& entry: cell.region_assignments().get<density>()) {
         const std::string& name = entry.first;
         mechanism_info info = catalogue[name];
@@ -960,7 +970,10 @@ fvm_mechanism_data fvm_build_mechanism_data(
 
         std::vector<double> param_on_cv(n_param);
 
+        //TODO
+        //basically deze cv offsetten voor de voltage vector maar hoe :D
         for (auto cv: D.geometry.cell_cvs(cell_idx)) {
+
             double area = 0;
             util::fill(param_on_cv, 0.);
 
@@ -976,6 +989,8 @@ fvm_mechanism_data fvm_build_mechanism_data(
 
             if (area>0) {
                 config.cv.push_back(cv);
+                config.volt_cv.push_back(cv + volt_cv_offset);   //-->adding the extra offset into the voltage vector :D
+                std::cout << "pushing back in cv / volt cv " << cv << "  " << cv + volt_cv_offset <<std::endl;
                 config.norm_area.push_back(area/D.cv_area[cv]);
 
                 double oo_area = 1./area;
@@ -1009,7 +1024,6 @@ fvm_mechanism_data fvm_build_mechanism_data(
     }
 
     // Synapses:
-
     struct synapse_instance {
         size_type cv;
         std::size_t param_values_offset;
@@ -1131,6 +1145,7 @@ fvm_mechanism_data fvm_build_mechanism_data(
             }
             else {
                 config.cv.push_back(in.cv);
+                config.volt_cv.push_back(in.cv + volt_cv_offset);
                 if (coalesce) {
                     config.multiplicity.push_back(1);
                 }
@@ -1153,7 +1168,6 @@ fvm_mechanism_data fvm_build_mechanism_data(
     M.post_events = post_events;
 
     // Gap junctions:
-
     struct junction_desc {
         std::string name;                     // mechanism name.
         std::vector<value_type> param_values; // overridden parameter values.
@@ -1217,8 +1231,9 @@ fvm_mechanism_data fvm_build_mechanism_data(
     for (const auto& conn: gj_conns) {
         auto local_junction_desc = lid_junction_desc[conn.local_idx];
         auto& config = junction_configs[local_junction_desc.name];
-
-        config.cv.push_back(conn.local_cv);
+        std::cout << "adding an Gapjunction on cellidx "<< conn.local_idx << " from local cv: " << conn.local_cv << " -> " << conn.peer_cv << std::endl;
+        config.cv.push_back(conn.local_cv);       //these are the same !! with respect to the global D
+        config.volt_cv.push_back(conn.local_cv);  //these are the same !! with respect to the global D
         config.peer_cv.push_back(conn.peer_cv);
         config.local_weight.push_back(conn.weight);
         for (unsigned i = 0; i < local_junction_desc.param_values.size(); ++i) {
@@ -1231,8 +1246,7 @@ fvm_mechanism_data fvm_build_mechanism_data(
         if (!config.cv.empty()) M.mechanisms[name] = std::move(config);
     }
 
-    // Stimuli:
-
+    // Stimuli: TODO
     if (!cell.stimuli().empty()) {
         const auto& stimuli = cell.stimuli();
         fvm_stimulus_config config;
@@ -1281,12 +1295,11 @@ fvm_mechanism_data fvm_build_mechanism_data(
         if (!config.cv.empty()) M.stimuli = std::move(config);
     }
 
-    // Ions:
-
+    // Ions:  ?? do i need to fix it herE ?
+    //check ion_cvs.second..... TODO
     auto initial_iconc_map = cell.region_assignments().get<init_int_concentration>();
     auto initial_econc_map = cell.region_assignments().get<init_ext_concentration>();
     auto initial_rvpot_map = cell.region_assignments().get<init_reversal_potential>();
-
     for (const auto& ion_cvs: ion_support) {
         const std::string& ion = ion_cvs.first;
 

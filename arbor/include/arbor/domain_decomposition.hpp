@@ -23,10 +23,12 @@ struct group_description {
     backend_kind backend;
 
     /// for distribution of cell groups exploration work. will be set directly for now
-    size_t my_domain = 0;
-    size_t index_my_domain = 0;
-    std::vector<int> domains;
-    std::vector<int> gid_local_offsets;
+    cell_gid_type my_domain = 0;
+    cell_gid_type index_my_domain = 0;
+    cell_gid_type volt_offset = 0;
+    std::vector<cell_gid_type> domains;
+    std::vector<cell_gid_type> gid_local_offsets;
+    std::vector<std::vector<cell_gid_type>> cv_per_domain;
 
     group_description(cell_kind k, std::vector<cell_gid_type> g, backend_kind b ):
         kind(k), gids(std::move(g)), backend(b)

@@ -38,6 +38,9 @@
 #include "util/strprintf.hpp"
 #include "util/transform.hpp"
 
+
+#include "mpi.h"
+
 namespace arb {
 
 template <class Backend>
@@ -225,6 +228,7 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
     // complete fvm state into shared state object.
 
     while (remaining_steps) {
+
         std::cout << "remaining steps: "                                     << remaining_steps << " \t ";
         std::cout << "state_->n_cv "                                         << state_->n_cv    << "\t";
         std::cout << "state_->n_cv_global "                                  << state_->n_cv*groupDescription_.domains.size()    << "\t";
@@ -290,18 +294,22 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
         // Integrate voltage by matrix solve.
         PE(advance_integrate_matrix_build);
 
+//NEW TODO TODO
 //        //should be easy to offset.
-        array* volt = &state_->voltage + groupDescription_.gid_local_offsets[groupDescription_.index_my_domain];
+//        array* volt = &state_->voltage + groupDescription_.gid_local_offsets[groupDescription_.index_my_domain];
+//        matrix_.assemble(state_->dt_intdom, *volt, state_->current_density, state_->conductivity);
+//        matrix_.solve(*volt);
 
-        matrix_.assemble(state_->dt_intdom, *volt, state_->current_density, state_->conductivity);
+// OLD
+        matrix_.assemble(state_->dt_intdom, state_->voltage, state_->current_density, state_->conductivity);
         PL();
         PE(advance_integrate_matrix_solve);
         //easy to offset.
-        matrix_.solve(*volt);
+        matrix_.solve(state_->voltage);
+//        matrix_.solve(*volt);
         PL();
 
         // Integrate mechanism state.
-
         for (auto& m: mechanisms_) {
             m->update_state();
         }
@@ -600,26 +608,58 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
                    [&fvm_info_local](index_type i){ return fvm_info_local.cell_to_intdom[i]; });
 
 
-    //building a global matrix.
-    std::cout << "start building the matrix" << std::endl;
-    arb_assert(D_global.n_cell() == ncell_global);
-    matrix_ = matrix<backend>(D_global.geometry.cv_parent, D_global.geometry.cell_cv_divs,
-                              D_global.cv_capacitance, D_global.face_conductance, D_global.cv_area, fvm_info_global.cell_to_intdom);
-    sample_events_ = sample_event_stream(nintdom_global);
+    // TODO ..
+    // TODO ..
+    // TODO ..
+    // Right now here we need to build a CV offset map for the current group we are working in.
+    // We know are Cell ID -- GID local offsets so it should be just a easy as figuring out in the global index when our
+    // cell ID starts.
+    std::cout << "learning a bit about the cv'ranges off this cellgroup: " << std::endl;
+    cell_gid_type domindx = 0;
+    cell_gid_type offset  = 0;
+    for (auto& dom:groupDescription_.domains){
+        if(dom == groupDescription_.my_domain){
+            groupDescription_.volt_offset = offset;
+        }
+        std::cout << "[" << dom << "] : ";
+        std::vector<cell_gid_type> temp;
+        for(cell_gid_type id = groupDescription_.gid_local_offsets[domindx]; id < groupDescription_.gid_local_offsets[domindx] + groupDescription_.gids.size(); id++) {
+            for (auto cv:D_global.geometry.cell_cvs(id)) {
+                std::cout << " " << cv;
+                temp.push_back(cv);
+                offset++;
+            }
+        }
+        std::cout << std::endl;
+        domindx++;
+        groupDescription_.cv_per_domain.push_back(temp);
+    }
 
     // Discretize and build gap junction info. for full cell group not just locally
     std::cout << "Discretie and build gap junction info" << std::endl;
     auto gj_cvs   = fvm_build_gap_junction_cv_map(cells_global, global_gids, D_global);
     auto gj_conns = fvm_resolve_gj_connections(global_gids, fvm_info_global.gap_junction_data, gj_cvs, rec);
-// TODO
-// TODO
-// TODO
 
+    /*
+     *
+     * LOCAL FROM HERE ON ! Just need to know the offset into the voltage vector !
+     *
+     */
 
+    //building a local! matrix.
+    std::cout << "start building the matrix" << std::endl;
 
-    // Discretize mechanism data. for local gids and all gj_connections !
-    // this should work on GID index so safe on gj_conns
-    fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells_local, local_gids, gj_conns, D_local, context_);
+    arb_assert(D_local.n_cell() == ncell_local);
+    matrix_ = matrix<backend>(D_local.geometry.cv_parent, D_local.geometry.cell_cv_divs,
+                              D_local.cv_capacitance, D_local.face_conductance, D_local.cv_area, fvm_info_local.cell_to_intdom);
+
+    //sample event stream
+    sample_events_ = sample_event_stream(nintdom_local);
+
+    // just a Voltage vector offset is needed here !
+    std::cout << "Start building the mech_data"<< std::endl;
+    std::cout << "the voltage offset for domain : " << groupDescription_.my_domain << " equals : " << groupDescription_.volt_offset << std::endl;
+    fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells_local, local_gids, gj_conns, D_local, groupDescription_.volt_offset, context_);
 
     // Fill src_to_spike and cv_to_cell vectors only if mechanisms with post_events implemented are present.
     post_events_ = mech_data.post_events;
@@ -641,6 +681,7 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
         src_to_spike_local.shrink_to_fit();
     }
 
+
     // Create shared cell state.
     // Shared state vectors should accommodate each mechanism's data alignment requests.
     unsigned data_alignment = util::max_value(
@@ -650,10 +691,12 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     //TODO ---> this will break with local
     // it looks like we can just set the cv to intdom to global to take into account for the .... niet waar iets van offset nodig
     state_ = std::make_unique<shared_state>(
-                nintdom_local, ncell_local, max_detector, cv_to_intdom_local, std::move(D_local.geometry.cv_to_cell),
-                D_local.init_membrane_potential, D_local.temperature_K, D_local.diam_um, std::move(src_to_spike_local),
-                data_alignment? data_alignment: 1u);
+            nintdom_local, ncell_local, max_detector, cv_to_intdom_local, std::move(D_local.geometry.cv_to_cell),
+            D_local.init_membrane_potential, D_local.temperature_K, D_local.diam_um, std::move(src_to_spike_local),
+            data_alignment? data_alignment: 1u);
 
+    //TODO TODO TODO TODO :d should work...
+    state_->voltage.resize(cv_to_intdom_global.size());
     //TODO only works for multi_core backend this way
     //TODO --->>>>>
 
@@ -685,6 +728,8 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
 
         mechanism_layout layout;
         layout.cv = config.cv;
+        layout.volt_cv = config.volt_cv;
+
         layout.multiplicity = config.multiplicity;
         layout.peer_cv = config.peer_cv;
         layout.weight.resize(layout.cv.size());
@@ -794,16 +839,6 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     //resizing the voltage vector to make sure it's big enough
     // +++ add some restructuring to the index !!
 
-
-    //TODO TODO TODO TODO
-    auto val = state_->voltage[0];
-    state_->voltage.resize(cv_to_intdom_global.size());
-    //share the initial voltages across the domains.. ++ setup the MPI communication channels and stuff
-    for(auto& hi:state_->voltage){
-        //TODO TODO
-        hi = val;
-    }
-
     std::cout << "endl init [WIP] ~ would be a lucky hit" << std::endl;
     return fvm_info_local;
 }
@@ -841,9 +876,9 @@ fvm_size_type fvm_lowered_distributed_cell_impl<Backend>::fvm_intdom(
                 cell_to_intdom_global[gid_to_loc[g]] = intdom_global_id;
 
                 for (auto gj: rec.gap_junctions_on(g)) {
-                    if (!gid_to_loc.count(gj.peer.gid)) {
-                        std::cout << "connection across mpi ranks or on the other rank... :" << g << " -> " << gj.peer.gid << std::endl;
-                    }
+//                    if (!gid_to_loc.count(gj.peer.gid)) {
+//                        std::cout << groupDescription_.my_domain << " connection across mpi ranks or on the other rank... :" << g << " -> " << gj.peer.gid << std::endl;
+//                    }
 
                     if (!visited.count(gj.peer.gid)) {
                         visited.insert(gj.peer.gid);

@@ -232,6 +232,9 @@ struct fvm_mechanism_config {
     // duplicates for point mechanisms.
     std::vector<index_type> cv;
 
+    //The position in the global CV index when distributing the cellgroup
+    std::vector<index_type> volt_cv;
+
     // Coalesced synapse multiplier (point mechanisms only).
     std::vector<index_type> multiplicity;
 
@@ -330,6 +333,7 @@ fvm_mechanism_data fvm_build_mechanism_data(
     const std::vector<cell_gid_type>& gids,
     const std::unordered_map<cell_gid_type, std::vector<fvm_gap_junction>>& gj_conns,
     const fvm_cv_discretization& D,
+    const cell_gid_type& volt_cv_offset,
     const arb::execution_context& ctx={});
 
 } // namespace arb
