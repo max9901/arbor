@@ -116,8 +116,8 @@ public:
         // Soma is connected to the prev cell's dendrite
         // Dendrite is connected to the next cell's soma
         // Gap junction conductance in μS
-//        double weight = 0.015;
-        double weight = 0;
+        double weight = 0.015;
+//        double weight = 0;
         if (next_cell < cable_end) {
             conns.push_back(arb::gap_junction_connection({(cell_gid_type)next_cell, "local_0", policy::assert_univalent},
                                                          {"local_1", policy::assert_univalent}, weight));
@@ -167,8 +167,8 @@ int main(int argc, char** argv) {
 
         auto params = read_options(argc, argv);
 
-        arb::profile::meter_manager meters;
-        meters.start(context);
+//        arb::profile::meter_manager meters;
+//        meters.start(context);
 
         // Create an instance of our recipe.
         gj_recipe recipe(params);
@@ -245,13 +245,13 @@ int main(int argc, char** argv) {
                 });
         }
 
-        meters.checkpoint("model-init", context);
+//        meters.checkpoint("model-init", context);
 
         std::cout << "running simulation" << std::endl;
         // Run the simulation for 100 ms, with time steps of 0.025 ms.
         sim.run(params.sim_duration, 0.025);
 
-        meters.checkpoint("model-run", context);
+//        meters.checkpoint("model-run", context);
 
         auto ns = sim.num_spikes();
 
@@ -280,11 +280,11 @@ int main(int argc, char** argv) {
             write_trace_json(voltage_traces, arb::rank(context));
         }
 
-        auto report = arb::profile::make_meter_report(meters, context);
-        std::cout << report;
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Barrier(MPI_COMM_WORLD);
-        getchar();
+//        auto report = arb::profile::make_meter_report(meters, context);
+//        std::cout << report;
+
+        //quit all the destructors plz.
+        exit(0);
 
         std::cout << world_rank << " finsished cleaning up now " << std::endl;
     }

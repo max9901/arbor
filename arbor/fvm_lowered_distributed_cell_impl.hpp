@@ -38,7 +38,7 @@
 #include "util/strprintf.hpp"
 #include "util/transform.hpp"
 
-
+#include <iomanip>      // std::setprecision
 #include "mpi.h"
 
 namespace arb {
@@ -230,15 +230,64 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
     while (remaining_steps) {
 
         { //debug
-            std::cout << "remaining steps: " << remaining_steps << " \t ";
+            std::cout <<  groupDescription_.my_domain <<  " : remaining steps: " << remaining_steps << " \t ";
             std::cout << "state_->n_cv " << state_->n_cv << "\t";
             std::cout << "state_->n_cv_global " << state_->n_cv * groupDescription_.domains.size() << "\t";
             for (size_t i = 0; i < state_->n_cv * groupDescription_.domains.size(); i++) {
-                std::cout << " " << state_->voltage[i];
+                std::cout << std::setprecision(4) << " " << state_->voltage[i];
             }
+            std::cout << std::endl;
         }
 
-        std::cout << std::endl;
+        //share the voltage state
+        {
+            //need to map it into this class.
+            context_.distributed;
+//            int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+//                               void *recvbuf, const int *recvcounts, const int *displs,
+//                               MPI_Datatype recvtype, MPI_Comm comm)
+
+            const double *sendbuff = state_->voltage.data() + groupDescription_.volt_offset;
+            const int sendcount = groupDescription_.ncv_per_domain[groupDescription_.index_my_domain];
+
+            double *receivbufff = state_->voltage.data();
+            const int *recvcounts = groupDescription_.ncv_per_domain.data();
+
+            //dit ding is echt vrij k..
+            int displs[groupDescription_.ncv_per_domain.size()];
+
+            int countt = 0;
+            for(size_t dd = 0; dd < groupDescription_.ncv_per_domain.size(); dd++){
+                displs[dd] = countt;
+                countt += groupDescription_.ncv_per_domain[dd];
+            }
+
+            std::cout <<  groupDescription_.my_domain << " : sending " << sendcount;
+            for(auto&d:groupDescription_.ncv_per_domain){
+                std::cout << " " << d;
+            }
+            std::cout << std::endl;
+
+            MPI_Allgatherv(sendbuff,
+                           sendcount,
+                           MPI_DOUBLE,
+                           receivbufff,
+                           recvcounts,
+                           displs,
+                           MPI_DOUBLE,
+                           MPI_COMM_WORLD);
+
+        }
+
+        { //debug
+            std::cout <<  groupDescription_.my_domain <<  " : remaining steps: " << remaining_steps << " \t ";
+            std::cout << "state_->n_cv " << state_->n_cv << "\t";
+            std::cout << "state_->n_cv_global " << state_->n_cv * groupDescription_.domains.size() << "\t";
+            for (size_t i = 0; i < state_->n_cv * groupDescription_.domains.size(); i++) {
+                std::cout << std::setprecision(4) << " " << state_->voltage[i];
+            }
+            std::cout << std::endl;
+        }
 
         // Update any required reversal potentials based on ionic concs.
         for (auto& m: revpot_mechanisms_) {
@@ -368,6 +417,11 @@ fvm_integration_result fvm_lowered_distributed_cell_impl<Backend>::integrate(
             remaining_steps = dt_steps(tmin_, tfinal, dt_max);
         }
         PL();
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        if(groupDescription_.my_domain){
+            std::cout << std::endl;
+        }
     }
 
     set_tmin(tfinal);
@@ -635,6 +689,7 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
     cell_gid_type domindx = 0;
     cell_gid_type offset  = 0;
     for (auto& dom:groupDescription_.domains){
+        cell_gid_type count  = 0;
         if(dom == groupDescription_.my_domain){
             groupDescription_.volt_offset = offset;
         }
@@ -644,11 +699,13 @@ fvm_initialization_data fvm_lowered_distributed_cell_impl<Backend>::initialize(
             for (auto cv:D_global.geometry.cell_cvs(id)) {
                 std::cout << " " << cv;
                 temp.push_back(cv);
+                count++;
                 offset++;
             }
         }
         std::cout << std::endl;
         domindx++;
+        groupDescription_.ncv_per_domain.push_back(count);
         groupDescription_.cv_per_domain.push_back(temp);
     }
 

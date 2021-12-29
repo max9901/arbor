@@ -29,6 +29,7 @@ struct group_description {
     std::vector<cell_gid_type> domains;
     std::vector<cell_gid_type> gid_local_offsets;
     std::vector<std::vector<cell_gid_type>> cv_per_domain;
+    std::vector<int> ncv_per_domain;
 
     group_description(cell_kind k, std::vector<cell_gid_type> g, backend_kind b ):
         kind(k), gids(std::move(g)), backend(b)
