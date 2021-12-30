@@ -74,6 +74,9 @@ struct mechanism_layout {
     // Maps in-instance index to CV index.
     std::vector<fvm_index_type> cv;
 
+    // maps to global volt index
+    std::vector<fvm_index_type> volt_cv;
+
     // Maps in-instance index to peer CV index (only for gap-junctions).
     std::vector<fvm_index_type> peer_cv;
 

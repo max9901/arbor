@@ -67,7 +67,7 @@ public:
     }
 
     /// Assemble the matrix for given dt
-    void assemble(const array& dt_cell, const array& voltage, const array& current, const array& conductivity) {
+    void assemble(const array& dt_cell, fvm_value_type *voltage, const array& current, const array& conductivity) {
         state_.assemble(dt_cell, voltage, current, conductivity);
     }
 

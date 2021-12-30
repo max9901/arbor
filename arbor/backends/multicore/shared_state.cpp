@@ -464,6 +464,8 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     // We used the padded_allocator to allocate arrays with the correct alignment, and allocate
     // sizes that are multiples of a width padded to account for SIMD access and per-vector alignment.
 
+    printf("hier hit instanciation of a mech\n");
+
     util::padded_allocator<> pad(m.data_alignment());
 
     // Set internal variables
@@ -547,7 +549,8 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
     {
         // Allocate bulk storage
         std::size_t index_width_padded = extend_width<arb_index_type>(m, pos_data.cv.size());
-        std::size_t count = mult_in_place + peer_indices + m.mech_.n_ions + 1;
+        //todo added an extra + 1for the cv voltage ..
+        std::size_t count = mult_in_place + peer_indices + m.mech_.n_ions + 1 + 1;
         store.indices_ = iarray(count*index_width_padded, 0, pad);
         chunk_writer writer(store.indices_.data(), index_width_padded);
         // Setup node indices
@@ -555,7 +558,12 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         //   and pad by the last element of cv. If width == 0 we must choose a different pad, that will not
         //   really be used, as width == width_padded == 0. Nevertheless, we need to pass it.
         auto pad_val = pos_data.cv.empty() ? 0 : pos_data.cv.back();
+
         m.ppack_.node_index = writer.append(pos_data.cv, pad_val);
+
+        //TODO // add also if shared stuff or point to the same vector
+        m.ppack_.node_index_voltage = writer.append(pos_data.volt_cv, pad_val);
+
         auto node_index = util::range_n(m.ppack_.node_index, index_width_padded);
         // Make SIMD index constraints and set the view
         store.constraints_ = make_constraint_partition(node_index, m.ppack_.width, m.iface_.partition_width);
@@ -567,6 +575,7 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
         m.ppack_.index_constraints.n_constant    = store.constraints_.constant.size();
         m.ppack_.index_constraints.n_independent = store.constraints_.independent.size();
         m.ppack_.index_constraints.n_none        = store.constraints_.none.size();
+
         // Create ion indices
         for (auto idx: make_span(m.mech_.n_ions)) {
             auto  ion = m.mech_.ions[idx].name;
@@ -581,6 +590,7 @@ void shared_state::instantiate(arb::mechanism& m, unsigned id, const mechanism_o
             arb_assert(compatible_index_constraints(node_index, util::range_n(m.ppack_.ion_states[idx].index, index_width_padded), m.iface_.partition_width));
         }
         if (mult_in_place) m.ppack_.multiplicity = writer.append(pos_data.multiplicity, 0);
+
         // `peer_index` holds the peer CV of each CV in node_index.
         // Peer CVs are only filled for gap junction mechanisms. They are used
         // to index the voltage at the other side of a gap-junction connection.

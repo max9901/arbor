@@ -23,6 +23,8 @@
 #include "util/span.hpp"
 #include "profile/profiler_macro.hpp"
 
+#include "iostream"
+
 namespace arb {
 
 template <typename Seq, typename Value, typename Less = std::less<>>
@@ -194,22 +196,29 @@ simulation_state::simulation_state(
         [&](cell_group_ptr& group, int i) {
           const auto& group_info = decomp.groups[i];
           cell_label_range sources, targets;
-          auto factory = cell_kind_implementation(group_info.kind, group_info.backend, ctx);
+          auto factory = cell_kind_implementation(group_info.kind, group_info.backend, ctx, group_info);
           group = factory(group_info.gids, rec, sources, targets);
 
           cg_sources[i] = cell_labels_and_gids(std::move(sources), group_info.gids);
           cg_targets[i] = cell_labels_and_gids(std::move(targets), group_info.gids);
         });
 
+    std::cout << "created all cell groups here ?" << std::endl;
+
     cell_labels_and_gids local_sources, local_targets;
     for(const auto& i: util::make_span(cell_groups_.size())) {
         local_sources.append(cg_sources.at(i));
         local_targets.append(cg_targets.at(i));
     }
+
+    std::cout << "gather all cell labels and gids " << std::endl;
     auto global_sources = ctx.distributed->gather_cell_labels_and_gids(local_sources);
 
+    std::cout << "creation of the label resolution maps" << std::endl;
     auto source_resolution_map = label_resolution_map(std::move(global_sources));
     auto target_resolution_map = label_resolution_map(std::move(local_targets));
+
+    std::cout << "start creation of the communicator" << std::endl;
 
     communicator_ = arb::communicator(rec, decomp, source_resolution_map, target_resolution_map, ctx);
 
@@ -225,6 +234,7 @@ simulation_state::simulation_state(
     cell_size_type lidx = 0;
     cell_size_type grpidx = 0;
 
+    std::cout << "create target_resolution_map_ptr" << std::endl;
     auto target_resolution_map_ptr = std::make_shared<label_resolution_map>(std::move(target_resolution_map));
     for (const auto& group_info: decomp.groups) {
         for (auto gid: group_info.gids) {
@@ -249,6 +259,7 @@ simulation_state::simulation_state(
         ++grpidx;
     }
 
+    std::cout << "creation of event lanes " << std::endl;
     // Create event lane buffers.
     // One buffer is consumed by cell group updates while the other is filled with events for
     // the following epoch. In each buffer there is one lane for each local cell.
@@ -256,6 +267,8 @@ simulation_state::simulation_state(
     event_lanes_[1].resize(num_local_cells);
 
     epoch_.reset();
+    std::cout << "end of simulation state creation " << std::endl;
+
 }
 
 void simulation_state::reset() {

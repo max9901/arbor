@@ -108,7 +108,7 @@ struct sampler_call_info {
 using fvm_probe_scratch = std::tuple<std::vector<double>, std::vector<cable_sample_range>>;
 
 template <typename VoidFn, typename... A>
-void tuple_foreach(VoidFn&& f, std::tuple<A...>& t) {
+static void tuple_foreach(VoidFn&& f, std::tuple<A...>& t) {
     // executes functions in order (pack expansion)
     // uses comma operator (unary left fold)
     // avoids potentially overloaded comma operator (cast to void)
@@ -118,11 +118,11 @@ void tuple_foreach(VoidFn&& f, std::tuple<A...>& t) {
         t);
 }
 
-void reserve_scratch(fvm_probe_scratch& scratch, std::size_t n) {
+static void reserve_scratch(fvm_probe_scratch& scratch, std::size_t n) {
     tuple_foreach([n](auto& v) { v.reserve(n); }, scratch);
 }
 
-void run_samples(
+static void run_samples(
     const missing_probe_info&,
     const sampler_call_info&,
     const fvm_value_type*,
@@ -133,7 +133,7 @@ void run_samples(
     throw arbor_internal_error("invalid fvm_probe_data in sampler map");
 }
 
-void run_samples(
+static void run_samples(
     const fvm_probe_scalar& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -154,7 +154,7 @@ void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-void run_samples(
+static void run_samples(
     const fvm_probe_interpolated& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -184,7 +184,7 @@ void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-void run_samples(
+static void run_samples(
     const fvm_probe_multi& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -214,7 +214,7 @@ void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-void run_samples(
+static void run_samples(
     const fvm_probe_weighted_multi& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -257,7 +257,7 @@ void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-void run_samples(
+static void run_samples(
     const fvm_probe_interpolated_multi& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -304,7 +304,7 @@ void run_samples(
     sc.sampler({sc.probe_id, sc.tag, sc.index, p.get_metadata_ptr()}, n_sample, sample_records.data());
 }
 
-void run_samples(
+static void run_samples(
     const fvm_probe_membrane_currents& p,
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
@@ -379,7 +379,7 @@ void run_samples(
 }
 
 // Generic run_samples dispatches on probe info variant type.
-void run_samples(
+static void run_samples(
     const sampler_call_info& sc,
     const fvm_value_type* raw_times,
     const fvm_value_type* raw_samples,

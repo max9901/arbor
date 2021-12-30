@@ -275,7 +275,7 @@ fvm_integration_result fvm_lowered_cell_impl<Backend>::integrate(
         // Integrate voltage by matrix solve.
 
         PE(advance_integrate_matrix_build);
-        matrix_.assemble(state_->dt_intdom, state_->voltage, state_->current_density, state_->conductivity);
+        matrix_.assemble(state_->dt_intdom, state_->voltage.data(), state_->current_density, state_->conductivity);
         PL();
         PE(advance_integrate_matrix_solve);
         matrix_.solve(state_->voltage);
@@ -467,8 +467,8 @@ fvm_initialization_data fvm_lowered_cell_impl<Backend>::initialize(
     auto gj_conns = fvm_resolve_gj_connections(gids, fvm_info.gap_junction_data, gj_cvs, rec);
 
     // Discretize mechanism data.
-
-    fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells, gids, gj_conns, D, context_);
+    const cell_gid_type volt_cv_offset = 0;
+    fvm_mechanism_data mech_data = fvm_build_mechanism_data(global_props, cells, gids, gj_conns, D, volt_cv_offset, context_);
 
     // Fill src_to_spike and cv_to_cell vectors only if mechanisms with post_events implemented are present.
     post_events_ = mech_data.post_events;

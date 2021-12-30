@@ -31,11 +31,24 @@ make_catalogue(
   STANDALONE FALSE
   VERBOSE ${ARB_CAT_VERBOSE})
 
+make_catalogue(
+        NAME new_default
+        SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new_default/new_default"  # redirected to output path ++ the emc_cat.cpp
+        OUTPUT "CAT_NEW_DEFAULT_SOURCES"                             #    see above -
+        CXX_FLAGS_TARGET "${ARB_CXX_FLAGS_TARGET_FULL}"
+        STANDALONE FALSE
+        VERBOSE TRUE
+        CXXIN   TRUE
+        MECHS   exp2syn expsyn expsyn_stdp hh kamt kdrmt nax nernst pas gj
+        PREFIX "${PROJECT_SOURCE_DIR}/mechanisms"            #   Unused NOW
+)
+
 # Join sources
 set(arbor_mechanism_sources
   ${CAT_BBP_SOURCES}
   ${CAT_ALLEN_SOURCES}
   ${CAT_DEFAULT_SOURCES}
+  ${CAT_NEW_DEFAULT_SOURCES}
   PARENT_SCOPE)
 
 if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)

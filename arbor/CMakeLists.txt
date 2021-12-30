@@ -17,6 +17,7 @@ set(arbor_sources
     event_binner.cpp
     fvm_layout.cpp
     fvm_lowered_cell_impl.cpp
+    fvm_lowered_distributed_cell_impl.cpp
     hardware/memory.cpp
     hardware/power.cpp
     io/locked_ostream.cpp
@@ -24,6 +25,7 @@ set(arbor_sources
     label_resolution.cpp
     lif_cell_group.cpp
     mc_cell_group.cpp
+    mc_cell_group_distributed.cpp
     mechcat.cpp
     mechinfo.cpp
     memory/gpu_wrappers.cpp
