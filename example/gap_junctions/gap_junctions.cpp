@@ -205,11 +205,11 @@ int main(int argc, char** argv) {
         // Set up the probe that will measure voltage in the cell.
         auto sched = arb::regular_schedule(0.025);
         // This is where the voltage samples will be stored as (time, value) pairs
-        std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells);
+        std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells());
 
         // Now attach the sampler at probe_id, with sampling schedule sched, writing to voltage
         unsigned j=0;
-        for (auto g : decomp.groups) {
+        for (auto g : decomp.groups()) {
             for (auto i : g.gids) {
                 sim.add_sampler(arb::one_probe({i, 0}), sched, arb::make_simple_sampler(voltage_traces[j++]));
             }
