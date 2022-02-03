@@ -1,0 +1,4 @@
+add_executable(gap_junctions_distibuted EXCLUDE_FROM_ALL gap_junctions_distibuted.cpp)
+add_dependencies(examples gap_junctions_distibuted)
+
+target_link_libraries(gap_junctions_distibuted PRIVATE arbor arborio arborenv arbor-sup ${json_library_name})

@@ -26,6 +26,7 @@ set(arbor_sources
     label_resolution.cpp
     lif_cell_group.cpp
     mc_cell_group.cpp
+    mc_cell_group_distributed.cpp
     mechcat.cpp
     mechinfo.cpp
     memory/gpu_wrappers.cpp

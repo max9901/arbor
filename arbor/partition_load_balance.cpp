@@ -42,7 +42,7 @@ domain_decomposition partition_load_balance(
 
     std::vector<cell_gid_type> gid_divisions;
     auto gid_part = make_partition(
-        gid_divisions, transform_view(make_span(num_domains), dom_size));
+            gid_divisions, transform_view(make_span(num_domains), dom_size));
 
     // Global gj_connection table
 
@@ -230,4 +230,3 @@ domain_decomposition partition_load_balance(
 }
 
 } // namespace arb
-

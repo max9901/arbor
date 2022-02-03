@@ -34,11 +34,27 @@ make_catalogue(
   STANDALONE FALSE
   VERBOSE ${ARB_CAT_VERBOSE})
 
+# PLEASE note that this does only work with a manual copy of the sources files into the build dir.
+#make_catalogue(
+#        NAME new_default
+#        SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new_default/new_default"
+#        OUTPUT "CAT_NEW_DEFAULT_SOURCES"
+#        MOD
+#        CXX exp2syn expsyn expsyn_stdp hh kamt kdrmt nax nernst pas gj
+#        PREFIX  "${PROJECT_SOURCE_DIR}/mechanisms"
+#        CXX_FLAGS_TARGET "${CMAKE_CURRENT_SOURCE_DIR}/new_default/new_default"
+#        STANDALONE OFF
+#        VERBOSE ${ARB_CAT_VERBOSE}
+#)
+
+#add_subdirectory(new_default)
+
 # Join sources
 set(arbor_mechanism_sources
   ${CAT_BBP_SOURCES}
   ${CAT_ALLEN_SOURCES}
   ${CAT_DEFAULT_SOURCES}
+  ${new_default_sources_custom}
   PARENT_SCOPE)
 
 if(ARB_WITH_CUDA_CLANG OR ARB_WITH_HIP_CLANG)

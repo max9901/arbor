@@ -1,3 +1,7 @@
+# Clion
+*.idea
+cmake-build*
+
 # executables
 *.exe
 *.out

@@ -47,7 +47,7 @@ struct gap_params {
     double stim_duration = 30;
     double event_min_delay = 10;
     double event_weight = 0.05;
-    double sim_duration = 100;
+    double sim_duration = 1;
     bool print_all = true;
 };
 
@@ -99,6 +99,7 @@ public:
         arb::cable_cell_global_properties a;
         a.default_parameters = arb::neuron_parameter_defaults;
         a.default_parameters.temperature_K = 308.15;
+        a.catalogue = arb::global_default_catalogue();
         return a;
     }
 
@@ -115,14 +116,15 @@ public:
         // Soma is connected to the prev cell's dendrite
         // Dendrite is connected to the next cell's soma
         // Gap junction conductance in μS
-
+        double weight = 0.015;
+//        double weight = 0;
         if (next_cell < cable_end) {
             conns.push_back(arb::gap_junction_connection({(cell_gid_type)next_cell, "local_0", policy::assert_univalent},
-                                                         {"local_1", policy::assert_univalent}, 0.015));
+                                                         {"local_1", policy::assert_univalent}, weight));
         }
         if (prev_cell >= cable_begin) {
             conns.push_back(arb::gap_junction_connection({(cell_gid_type)prev_cell, "local_1", policy::assert_univalent},
-                                                         {"local_0", policy::assert_univalent}, 0.015));
+                                                         {"local_0", policy::assert_univalent}, weight));
         }
 
         return conns;
@@ -165,8 +167,8 @@ int main(int argc, char** argv) {
 
         auto params = read_options(argc, argv);
 
-        arb::profile::meter_manager meters;
-        meters.start(context);
+//        arb::profile::meter_manager meters;
+//        meters.start(context);
 
         // Create an instance of our recipe.
         gj_recipe recipe(params);
@@ -174,33 +176,51 @@ int main(int argc, char** argv) {
         arb::partition_hint dis_hints;
         dis_hints.number_of_domains_per_group = num_ranks(context);
 
-        arb::partition_hint_map hints;
-        hints.insert({arb::cell_kind::cable_distributed, dis_hints});
-
 //        here we should be able to give a group multiple ranks with offset aka the hints..?
-        auto decomp = arb::partition_load_balance(recipe, context,hints);
+        auto decomp = arb::partition_load_balance(recipe, context);
 
-//        list how the domain decomposition went
-        std::cout << rank(context) << " number of domains:      " <<  decomp.num_domains() << std::endl;
-        std::cout << rank(context) << " number of groups:       " <<  decomp.groups().size() << std::endl;            // this is local!
-        std::cout << rank(context) << " number of local cells:  " <<  decomp.num_local_cells() << std::endl;
-        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells() << std::endl;
-        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells() << std::endl;
+//debug
+        int world_size;
+        MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+        int world_rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+        for (int worlds = 0; worlds < world_size; worlds++) {
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (worlds == world_rank) {
+                std::cout << rank(context) << " number of domains:      " << decomp.num_domains() << std::endl;
+                std::cout << rank(context) << " number of groups:       " << decomp.groups().size() << std::endl;            // this is local!
+                std::cout << rank(context) << " number of local cells:  " << decomp.num_local_cells() << std::endl;
+                std::cout << rank(context) << " number of global cells: " << decomp.num_global_cells() << std::endl;
+                if (decomp.groups().size()) {
+                    int count = 0;
+                    for (auto &dit: decomp.groups()) {
+                        std::cout << rank(context) << " local group " << count << " : starting gid " << dit.gids[0] << std::endl;
+                        std::cout << "domains: ";
+                        for (auto &value:dit.domains)
+                            std::cout << " " << value;
+                        std::cout << std::endl;
+                        std::cout << "offsets: ";
+                        for (auto &value:dit.gid_local_offsets)
+                            std::cout << " " << value;
+                        std::cout << std::endl;
+                        std::cout << "gids ";
+                        for (auto &value:dit.gids)
+                            std::cout << " " << value;
+                        std::cout << std::endl;
 
-
-        if(decomp.groups().size()) {
-            int count = 0;
-            for (auto &dit: decomp.groups()) {
-                std::cout << rank(context) << " local group " << count << " : starting gid " << dit.gids[0] << " : ";
-                for (auto &value:dit.domains)
-                    std::cout << " " << value;
-                std::cout << std::endl;
-                count++;
+                        count++;
+                    }
+                }
             }
         }
+// debug
+
 
 //        Construct the model.
         arb::simulation sim(recipe, decomp, context);
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        std::cout << "created the arbor model " << std::endl;
 
         // Set up the probe that will measure voltage in the cell.
         auto sched = arb::regular_schedule(0.025);
@@ -211,6 +231,7 @@ int main(int argc, char** argv) {
         unsigned j=0;
         for (auto g : decomp.groups()) {
             for (auto i : g.gids) {
+//                std::cout << "attachin a probe to gid: " << i << std::endl;
                 sim.add_sampler(arb::one_probe({i, 0}), sched, arb::make_simple_sampler(voltage_traces[j++]));
             }
         }
@@ -224,13 +245,12 @@ int main(int argc, char** argv) {
                 });
         }
 
-        meters.checkpoint("model-init", context);
-
+//        meters.checkpoint("model-init", context);
         std::cout << "running simulation" << std::endl;
         // Run the simulation for 100 ms, with time steps of 0.025 ms.
         sim.run(params.sim_duration, 0.025);
 
-        meters.checkpoint("model-run", context);
+//        meters.checkpoint("model-run", context);
 
         auto ns = sim.num_spikes();
 
@@ -253,6 +273,7 @@ int main(int argc, char** argv) {
             }
         }
 
+        std::cout << "write samples to a json file" << std::endl;
         // Write the samples to a json file.
         if (params.print_all) {
             write_trace_json(voltage_traces, arb::rank(context));
@@ -260,6 +281,11 @@ int main(int argc, char** argv) {
 
 //        auto report = arb::profile::make_meter_report(meters, context);
 //        std::cout << report;
+
+        //quit all the destructors plz.
+        exit(0);
+
+        std::cout << world_rank << " finsished cleaning up now " << std::endl;
     }
 
     catch (std::exception& e) {
@@ -294,7 +320,6 @@ void write_trace_json(const std::vector<arb::trace_vector<double>>& traces, unsi
         file << std::setw(1) << json << "\n";
     }
 }
-
 arb::cable_cell gj_cell(cell_gid_type gid, unsigned ncell, double stim_duration) {
     // Create the sample tree that defines the morphology.
     arb::segment_tree tree;
@@ -347,7 +372,6 @@ arb::cable_cell gj_cell(cell_gid_type gid, unsigned ncell, double stim_duration)
     // Create the cell and set its electrical properties.
     return arb::cable_cell(tree, {}, decor);
 }
-
 gap_params read_options(int argc, char** argv) {
     using sup::param_from_json;
 
