@@ -25,6 +25,8 @@ std::ostream& operator<<(std::ostream& o, arb::cell_kind k) {
         return o << "spike_source";
     case arb::cell_kind::cable:
         return o << "cable";
+        case arb::cell_kind::cable_distributed:
+        return o << "cable_distributed";
     case arb::cell_kind::lif:
         return o << "lif";
     case arb::cell_kind::benchmark:

@@ -239,27 +239,6 @@ domain_decomposition partition_load_balance(
     // global all-to-all to gather a local copy of the global gid list on each node.
     auto global_gids = ctx->distributed->gather_gids(local_gids);
 
-
-//    std::cout << " deze " << domain_id << " : " ;
-//
-//    std::cout << "cells " << " : ";
-//    for( auto &cell : kind_lists){
-//            std::cout << " " << cell ;
-//        }
-//        std::cout << std::endl;
-//    }
-//    for( auto &scs : super_cells){
-//        std::cout << "supercells " << count << " : ";
-//        for( auto &sc : scs){
-//            std::cout << " " << sc ;
-//        }
-//        std::cout << std::endl;
-//        count++;
-//    }
-//    std::cout << std::endl;
-
-
-
 // MAX TOEVOEGING ::
 // add distributed cell groups here.. -> can only happen on cable distributed.
     for(auto &group: groups) {

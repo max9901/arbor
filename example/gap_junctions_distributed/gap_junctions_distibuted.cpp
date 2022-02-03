@@ -99,7 +99,7 @@ public:
         arb::cable_cell_global_properties a;
         a.default_parameters = arb::neuron_parameter_defaults;
         a.default_parameters.temperature_K = 308.15;
-        a.catalogue = (arb::mechanism_catalogue*)&arb::global_new_default_catalogue();
+        a.catalogue = arb::global_default_catalogue();
         return a;
     }
 
@@ -187,13 +187,13 @@ int main(int argc, char** argv) {
         for (int worlds = 0; worlds < world_size; worlds++) {
             MPI_Barrier(MPI_COMM_WORLD);
             if (worlds == world_rank) {
-                std::cout << rank(context) << " number of domains:      " << decomp.num_domains << std::endl;
-                std::cout << rank(context) << " number of groups:       " << decomp.groups.size() << std::endl;            // this is local!
-                std::cout << rank(context) << " number of local cells:  " << decomp.num_local_cells << std::endl;
-                std::cout << rank(context) << " number of global cells: " << decomp.num_global_cells << std::endl;
-                if (decomp.groups.size()) {
+                std::cout << rank(context) << " number of domains:      " << decomp.num_domains() << std::endl;
+                std::cout << rank(context) << " number of groups:       " << decomp.groups().size() << std::endl;            // this is local!
+                std::cout << rank(context) << " number of local cells:  " << decomp.num_local_cells() << std::endl;
+                std::cout << rank(context) << " number of global cells: " << decomp.num_global_cells() << std::endl;
+                if (decomp.groups().size()) {
                     int count = 0;
-                    for (auto &dit: decomp.groups) {
+                    for (auto &dit: decomp.groups()) {
                         std::cout << rank(context) << " local group " << count << " : starting gid " << dit.gids[0] << std::endl;
                         std::cout << "domains: ";
                         for (auto &value:dit.domains)
@@ -225,11 +225,11 @@ int main(int argc, char** argv) {
         // Set up the probe that will measure voltage in the cell.
         auto sched = arb::regular_schedule(0.025);
         // This is where the voltage samples will be stored as (time, value) pairs
-        std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells);
+        std::vector<arb::trace_vector<double>> voltage_traces(decomp.num_local_cells());
 
         // Now attach the sampler at probe_id, with sampling schedule sched, writing to voltage
         unsigned j=0;
-        for (auto g : decomp.groups) {
+        for (auto g : decomp.groups()) {
             for (auto i : g.gids) {
                 std::cout << "attachin a probe to gid: " << i << std::endl;
                 sim.add_sampler(arb::one_probe({i, 0}), sched, arb::make_simple_sampler(voltage_traces[j++]));

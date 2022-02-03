@@ -18,18 +18,22 @@ struct group_description {
 
     /// The gids of the cells in the cell_group. Does not need to be sorted.
     std::vector<cell_gid_type> gids;
+    std::vector<cell_gid_type> gids_global;
 
     /// The back end on which the cell_group is to run.
     backend_kind backend;
 
-    /// In case of distribution the domain's this group should be distributed over
-    std::vector<int> domains;
+    /// for distribution of cell groups exploration work. will be set directly for now
+    cell_gid_type my_domain = 0;
+    cell_gid_type index_my_domain = 0;
+    cell_gid_type volt_offset = 0;
+    std::vector<cell_gid_type> domains;
+    std::vector<cell_gid_type> gid_local_offsets;
+    std::vector<std::vector<cell_gid_type>> cv_per_domain;
+    std::vector<int> ncv_per_domain;
 
-    // Celloff set // in case of distribution the cell offset of this group should be known
-    size_t gid_local_offset = 0;
-
-    group_description(cell_kind k, std::vector<cell_gid_type> g, backend_kind b):
-        kind(k), gids(std::move(g)), backend(b)
+    group_description(cell_kind k, std::vector<cell_gid_type> g, backend_kind b ):
+            kind(k), gids(std::move(g)), backend(b)
     {}
 };
 
