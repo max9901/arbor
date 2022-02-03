@@ -2,7 +2,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <iostream>
 
 #include <arbor/domdecexcept.hpp>
 #include <arbor/domain_decomposition.hpp>
@@ -33,20 +32,17 @@ domain_decomposition partition_load_balance(
     const bool gpu_avail = ctx->gpu->has_gpu();
     auto num_global_cells = rec.num_cells();
 
-    //algoritme too devide the global cellsover the number of domains.
     auto dom_size = [&](unsigned dom) -> cell_gid_type {
         const cell_gid_type B = num_global_cells/num_domains;
         const cell_gid_type R = num_global_cells - num_domains*B;
         return B + (dom<R);
     };
 
-
-    // Gid_part is all the nodes we will start searching from for this node !
-
     // Global load balance
+
     std::vector<cell_gid_type> gid_divisions;
     auto gid_part = make_partition(
-        gid_divisions, transform_view(make_span(num_domains), dom_size));
+            gid_divisions, transform_view(make_span(num_domains), dom_size));
 
     // Global gj_connection table
 
@@ -87,6 +83,7 @@ domain_decomposition partition_load_balance(
         std::move(missing_peers[i].begin(), missing_peers[i].end(), std::back_inserter(global_gj_connection_table[i]));
     }
     // Local load balance
+
     std::vector<std::vector<cell_gid_type>> super_cells; //cells connected by gj
     std::vector<cell_gid_type> reg_cells; //independent cells
 
@@ -202,29 +199,19 @@ domain_decomposition partition_load_balance(
         }
 
         std::vector<cell_gid_type> group_elements;
-
-
         // group_elements are sorted such that the gids of all members of a super_cell are consecutive.
-            // in the case of distributed gap junctions we need to distribute a super_cell over all members involved.
-            // needs to be done before we do this function.
         for (auto cell: kind_lists[k]) {
             if (!cell.is_super_cell) {
                 group_elements.push_back(cell.id);
             } else {
-
-                // als group_element size groter is dan hoe groot de supercell moet zijn voegen we hem toe aan de groeps.
                 if (group_elements.size() + super_cells[cell.id].size() > group_size && !group_elements.empty()) {
                     groups.emplace_back(k, std::move(group_elements), backend);
                     group_elements.clear();
                 }
-
-                //toevoegen van de eerste super cell.
                 for (auto gid: super_cells[cell.id]) {
                     group_elements.push_back(gid);
                 }
-
             }
-            //fixen van de hints !
             if (group_elements.size()>=group_size) {
                 groups.emplace_back(k, std::move(group_elements), backend);
                 group_elements.clear();
@@ -239,35 +226,7 @@ domain_decomposition partition_load_balance(
     // global all-to-all to gather a local copy of the global gid list on each node.
     auto global_gids = ctx->distributed->gather_gids(local_gids);
 
-// MAX TOEVOEGING ::
-// add distributed cell groups here.. -> can only happen on cable distributed.
-    for(auto &group: groups) {
-        if(group.kind != arb::cell_kind::cable_distributed){
-            group.domains.push_back(domain_id);
-        }else{
-            group.domains.push_back(domain_id);
-            partition_hint hint;
-            if (auto opt_hint = util::value_by_key(hint_map, group.kind)) {
-                if(opt_hint->number_of_domains_per_group > num_domains || opt_hint->number_of_domains_per_group <= 0){
-                    throw arbor_exception(arb::util::pprintf("unable to perform load balancing because {} has invalid suggested number_of_domains_per_group size of {}", group.kind, hint.gpu_group_size));
-                }
-                //todo add a way to later fix wrong settings
-                auto num_of_domains = opt_hint->number_of_domains_per_group - 1;
-                size_t last_added_domain = domain_id;
-                while(num_of_domains){
-                    last_added_domain++;
-                    if(last_added_domain >= num_domains)
-                        last_added_domain = 0;
-                    group.domains.push_back(last_added_domain);
-                    num_of_domains--;
-                }
-            }
-        }
-    }
-
-    domain_decomposition d = domain_decomposition(rec, ctx, groups);
-    return d;
+    return domain_decomposition(rec, ctx, groups);
 }
 
 } // namespace arb
-

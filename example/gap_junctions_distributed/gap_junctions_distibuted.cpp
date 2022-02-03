@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
         unsigned j=0;
         for (auto g : decomp.groups()) {
             for (auto i : g.gids) {
-                std::cout << "attachin a probe to gid: " << i << std::endl;
+//                std::cout << "attachin a probe to gid: " << i << std::endl;
                 sim.add_sampler(arb::one_probe({i, 0}), sched, arb::make_simple_sampler(voltage_traces[j++]));
             }
         }
@@ -246,7 +246,6 @@ int main(int argc, char** argv) {
         }
 
 //        meters.checkpoint("model-init", context);
-
         std::cout << "running simulation" << std::endl;
         // Run the simulation for 100 ms, with time steps of 0.025 ms.
         sim.run(params.sim_duration, 0.025);
