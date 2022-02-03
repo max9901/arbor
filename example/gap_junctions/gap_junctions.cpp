@@ -181,16 +181,16 @@ int main(int argc, char** argv) {
         auto decomp = arb::partition_load_balance(recipe, context,hints);
 
 //        list how the domain decomposition went
-        std::cout << rank(context) << " number of domains:      " <<  decomp.num_domains << std::endl;
-        std::cout << rank(context) << " number of groups:       " <<  decomp.groups.size() << std::endl;            // this is local!
-        std::cout << rank(context) << " number of local cells:  " <<  decomp.num_local_cells << std::endl;
-        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells << std::endl;
-        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells << std::endl;
+        std::cout << rank(context) << " number of domains:      " <<  decomp.num_domains() << std::endl;
+        std::cout << rank(context) << " number of groups:       " <<  decomp.groups().size() << std::endl;            // this is local!
+        std::cout << rank(context) << " number of local cells:  " <<  decomp.num_local_cells() << std::endl;
+        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells() << std::endl;
+        std::cout << rank(context) << " number of global cells: " <<  decomp.num_global_cells() << std::endl;
 
 
-        if(decomp.groups.size()) {
+        if(decomp.groups().size()) {
             int count = 0;
-            for (auto &dit: decomp.groups) {
+            for (auto &dit: decomp.groups()) {
                 std::cout << rank(context) << " local group " << count << " : starting gid " << dit.gids[0] << " : ";
                 for (auto &value:dit.domains)
                     std::cout << " " << value;
